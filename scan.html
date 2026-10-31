@@ -2,8 +2,12 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, userpx-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>PT URIP SUGIARTO </title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
@@ -18,7 +22,7 @@ body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12
 .box{background:#111;border:2px solid #c9a84c;border-radius:12px;padding:12px;margin-top:12px}
 .step{display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:4px;border:1px solid #444}
 .active{background:gold;color:black}.done{background:#0f0;color:black}.wait{background:#222;color:#888}
-#reader{width:100% !important;max-width:400px !important;height:400px !important;position:relative !important;overflow:hidden !important;margin:0 auto !important;background:#000;}
+#reader{width:280px !important;max-width:280px !important;height:280px !important;max-height:280px !important;margin:0 auto !important;background:#000;border-radius:12px;border:2px solid #c9a84c;overflow:hidden !important;}
 #reader video{width:100% !important;height:100% !important;object-fit:cover !important;}
 #scan-guide{border:4px solid #ffeb00;box-shadow:0 0 0 4000px rgba(0,0,0,0.45);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:250px;height:250px;z-index:5;}
 #scan-guide::before{content:'ARAHKAN QR KESINI';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#ffeb00;color:#000;font-weight:900;padding:2px 10px;white-space:nowrap;}
@@ -334,7 +338,7 @@ async function kirimData(){
 async function startCam(camId){
   if(html5QrcodeScanner){ try{ await html5QrcodeScanner.stop(); }catch(e){} }
   html5QrcodeScanner=new Html5Qrcode("reader");
-  let config={fps:15,qrbox:{width:320,height:320},aspectRatio:1.0,videoConstraints:{facingMode:"environment"}};
+  let config={fps:15,qrbox:{width:280,height:280},aspectRatio:1.0,videoConstraints:{facingMode:"environment"}};
   if(camId) config.videoConstraints={deviceId:{exact:camId}};
   try{
     await html5QrcodeScanner.start(camId||{facingMode:"environment"}, config, onScanSuccess, ()=>{});
