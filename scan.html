@@ -354,5 +354,19 @@ async function startCam(camId){
   startCam();
 })();
 </script>
+<script>
+setTimeout(()=>{
+  let inp = document.getElementById('inputManual');
+  if(inp){
+    inp.disabled = false;
+    inp.readOnly = false;
+    inp.style.pointerEvents = 'auto';
+    inp.style.zIndex = '9999';
+    inp.style.position = 'relative';
+  }
+  let hasil = document.getElementById('hasilID') || document.getElementById('hasil');
+  if(hasil) hasil.style.display = 'block';
+}, 1000);
+</script>
 </body>
 </html>
