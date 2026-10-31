@@ -1,0 +1,48 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>History</title>
+<style>
+body{background:#111;color:white;padding:15px;font-family:sans-serif}
+.card{background:#1e1e1e;padding:12px;border-radius:12px;margin-bottom:10px;border-left:4px solid #c9a84c}
+.badge{padding:3px 8px;border-radius:10px;font-size:11px;font-weight:900;display:inline-block}
+.valid{background:#0f0;color:black}.sama{background:yellow;color:black}
+.header{display:flex;justify-content:space-between;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+th{background:#333;color:gold;padding:6px}td{padding:6px;border:1px solid #333}
+.btn{width:100%;padding:12px;border-radius:10px;font-weight:900;margin-top:10px;border:none}
+.btn-gold{background:gold;color:black}.btn-black{background:#333;color:white}
+</style></head><body>
+<button onclick="location.href='index.html'" class="btn btn-black" style="width:auto">← Kembali</button>
+<h3>RIWAYAT - AUTO SYNC</h3>
+<div id="autoInfo" style="background:#222;padding:8px;border-radius:8px;font-size:11px;color:gold;text-align:center">⏳ Cek koneksi...</div>
+<button class="btn btn-gold" onclick="kirimUlang()">🔄 KIRIM MANUAL</button>
+<div id="list" style="margin-top:12px"></div>
+<script>
+const URL_GAS="https://script.google.com/macros/s/AKfycbz-QZefe9rvUl6Q6mXQHZmRgNww_b4PxxfaokevzX1_BchKSBXnGWkRi3I3KZimolrbpA/exec";
+let all=JSON.parse(localStorage.getItem('riwayat_scan')||localStorage.getItem('riwayat')||'[]');
+function tampil(){
+ let h=''; if(all.length==0){h='<p style="text-align:center;color:#666">Belum ada data</p>';}
+ else{all.slice().reverse().forEach(d=>{
+  let badgeClass=d.STATUS_JEDA=='SAMA HARI'?'sama':'valid'; let badgeText=d.STATUS_JEDA||d.status||'VALID';
+  let borderColor=d.STATUS_JEDA=='SAMA HARI'?'yellow':'#0f0';
+  h+=`<div class="card" style="border-left-color:${borderColor}"><div class="header"><b>QR:${d.QR_BAK||'-'}</b><span class="badge ${badgeClass}">${badgeText}</span></div>
+  <div style="margin-top:8px;color:#ccc;font-size:12px">BAGIAN:${d.BAGIAN||'-'} | ${d.TANGGAL||d.waktu||''}</div>
+  <table><tr><th>STEP</th><th>ID</th><th>TGL</th></tr>
+  <tr><td>GL</td><td>${d.ID_GL||'-'} ${d.ID_GL2?'/ '+d.ID_GL2:''}</td><td>${d.TGL_GL||'-'}</td></tr>
+  <tr><td>KMS</td><td>${d.ID_KMS||'-'}</td><td>${d.TGL_KMS||'-'}</td></tr>
+  <tr><td>PACK</td><td>${d.ID_PACK||'-'}</td><td>-</td></tr>
+  <tr><td>BDL</td><td>${d.ID_BDL||'-'}</td><td>-</td></tr>
+  <tr><td>BALL</td><td>${d.ID_BALL||'-'}</td><td>-</td></tr></table>
+  <div style="font-size:10px;color:#888;margin-top:5px">Status: ${d.status||'Lokal'}</div></div>`;
+ });}
+ document.getElementById('list').innerHTML=h;
+}
+async function kirimUlang(){
+ if(!navigator.onLine){alert('Nyalakan data dulu '); return;}
+ document.getElementById('autoInfo').innerText='⏳ Mengirim...';
+ for(let d of all){ if(d.status=='sukses') continue; try{ await fetch(URL_GAS,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d),mode:'no-cors'}); d.status='sukses'; }catch(e){} }
+ localStorage.setItem('riwayat',JSON.stringify(all)); localStorage.setItem('riwayat_scan',JSON.stringify(all));
+ document.getElementById('autoInfo').innerText='✅ Selesai auto kirim'; tampil();
+}
+window.addEventListener('online', ()=>{ document.getElementById('autoInfo').innerText='📶 Sinyal balik, auto kirim...'; kirimUlang(); });
+window.addEventListener('load', ()=>{ if(navigator.onLine){ let ada=all.some(d=>d.status!='sukses'); if(ada) kirimUlang(); else document.getElementById('autoInfo').innerText='✅ Online - Semua terkirim'; } else document.getElementById('autoInfo').innerText='📴 Offline - Nanti auto kirim pas ada sinyal'; });
+tampil();
+</script></body></html>
