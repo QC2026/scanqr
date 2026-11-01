@@ -381,27 +381,16 @@ async function startCam(camId){
   // CONFIG ANTI GELAP
   let config = {
     fps: 10,
-    qrbox: { width: 250, height: 250 },
-    aspectRatio: 1.0
+    qrbox: { width: 250, height: 250 }
   };
-
-  // CAMERA ID - JANGAN PAKE videoConstraints DIDALEM CONFIG
-  let cameraConfig;
-  if(camId){
-    cameraConfig = { deviceId: { exact: camId } };
-  } else {
-    cameraConfig = { facingMode: "environment" }; // JANGAN PAKE exact, JANGAN PAKE videoConstraints
-  }
-
+  let cameraConfig = camId ? { deviceId: { exact: camId } }:{ facingMode: "environment" };
   try{
     await html5QrcodeScanner.start(cameraConfig, config, onScanSuccess, ()=>{});
     document.getElementById('status').innerText = '✅ Kamera nyala';
     cams = await Html5Qrcode.getCameras();
-  }catch(e){ 
-    console.log(e);
-    // FALLBACK - COBA TANPA DEVICE ID
+  }catch(e){
     try{
-      await html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess, ()=>{});
+      await html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width:250, height: 250 }}, onScanSuccess, ()=>{});
     }catch(e2){
       document.getElementById('status').innerText = '❌ Kamera error: ' + e2;
     }
@@ -409,7 +398,6 @@ async function startCam(camId){
 }
 (async()=>{
   renderSteps();
-  // CEK AUTO HAPUS MINGGUAN
   let lastClean = parseInt(localStorage.getItem('last_clean_hp')||0);
   let seminggu = 7 * 24 * 60 * 60 * 1000;
   if(Date.now() - lastClean > seminggu){
@@ -418,20 +406,6 @@ async function startCam(camId){
   cekOffline();
   startCam();
 })();
-</script>
-<script>
-setTimeout(()=>{
-  let inp = document.getElementById('inputManual');
-  if(inp){
-    inp.disabled = false;
-    inp.readOnly = false;
-    inp.style.pointerEvents = 'auto';
-    inp.style.zIndex = '9999';
-    inp.style.position = 'relative';
-  }
-  let hasil = document.getElementById('hasilID') || document.getElementById('hasil');
-  if(hasil) hasil.style.display = 'block';
-}, 1000);
 </script>
 </body>
 </html>
