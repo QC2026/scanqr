@@ -3,80 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>PT URIP SUGIARTO </title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
-if(typeof Html5Qrcode === 'undefined'){
-  document.write('<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"><\/script>');
-}
-</script>
-  <style>
+<title>PT URIP SUGIARTO</title>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<style>
 body{
-  margin:0;
-  background:#0a0a0a;
-  color:#ffd700;
-  font-family:sans-serif;
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-height:100vh;
-  width:100%;
-  box-sizing:border-box;
+  margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;
+  padding:12px;display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;width:100%;box-sizing:border-box;overflow-x:hidden;
 }
 .header{
-  display:flex;
-  align-items:center;
-  gap:10px;
+  display:flex;align-items:center;gap:10px;
   background:linear-gradient(180deg,#1a1a1a,#000);
-  border:2px solid #c9a84c;
-  border-radius:12px;
-  padding:10px;
-  width:100%;
-  max-width:500px;
-  box-sizing:border-box;
+  border:2px solid #c9a84c;border-radius:12px;padding:10px;
+  width:100%;max-width:500px;box-sizing:border-box;
 }
 .pt{background:#b91c1c;border:2px solid gold;border-radius:10px;padding:8px 12px;color:white;font-weight:900;flex:1;text-align:center}
 .box{
-  background:#111;
-  border:2px solid #c9a84c;
-  border-radius:12px;
-  padding:12px;
-  margin-top:12px;
-  width:100%;
-  max-width:400px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  box-sizing:border-box;
+  background:#111;border:2px solid #c9a84c;border-radius:12px;
+  padding:12px;margin-top:12px;width:100%;max-width:400px;
+  display:flex;flex-direction:column;align-items:center;box-sizing:border-box;
 }
 .step{display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:4px;border:1px solid #444}
 .active{background:gold;color:black}.done{background:#0f0;color:black}.wait{background:#222;color:#888}
 #reader{
-  width:280px !important;
-  min-width:280px !important;
-  max-width:280px !important;
-  height:280px !important;
-  min-height:280px !important;
-  max-height:280px !important;
-  margin:12px auto !important;
-  position:relative !important;
-  display:block !important;
-  background:#000;
-  border-radius:12px;
-  border:2px solid #c9a84c;
-  overflow:hidden !important;
+  width:280px !important;min-width:280px !important;max-width:280px !important;
+  height:280px !important;min-height:280px !important;max-height:280px !important;
+  margin:12px auto !important;position:relative !important;display:block !important;
+  background:#000;border-radius:12px;border:2px solid #c9a84c;overflow:hidden !important;
 }
-#reader video{width:100% !important;height:100% !important;object-fit:cover !important}
-#scan-guide{border:4px solid #ffeb00;box-shadow:0 0 0 4000px rgba(0,0,0,0.45);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:250px;height:250px;z-index:5}
+#reader *{box-sizing:border-box !important;max-width:280px !important}
+#reader > div{width:280px !important;height:280px !important;margin:0 auto !important;left:0 !important;right:0 !important}
+#reader video{width:280px !important;height:280px !important;object-fit:cover !important;left:0 !important;transform:none !important}
+
+#scan-guide{border:4px solid #ffeb00;box-shadow:0 0 0 4000px rgba(0,0,0,0.45);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:250px;height:250px;z-index:5;pointer-events:none}
 #scan-guide::before{content:'ARAHKAN QR KESINI';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#ffeb00;color:#000;font-weight:900;padding:2px 10px;white-space:nowrap;font-size:11px}
 .btn{width:100%;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px;box-sizing:border-box}
-input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;border-radius:8px;box-sizing:border-box;margin-top:8px}
+input{width:100%;max-width:400px;padding:12px;background:#222;border:1px solid #444;color:white;border-radius:8px;box-sizing:border-box;margin-top:8px}
 #resultBox,#verify8Box{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;padding:20px;box-sizing:border-box;overflow:auto}
 .card{background:#1a1a1a;border:3px solid gold;border-radius:16px;padding:20px;text-align:center;margin-top:10%}
 #list-preview{background:#000;border:1.5px solid #0f0;border-radius:8px;padding:8px;margin-top:8px;max-height:180px;overflow:auto;text-align:left;font-size:13px;color:#0f0;width:100%;box-sizing:border-box}
@@ -84,33 +46,33 @@ input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;
 </head>
 <body>
 <div class="header"><div style="width:50px;height:50px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center"><img src="logo.png" style="width:100%;height:100%;border-radius:50%"></div><div class="pt">PT. URIP SUGIARTO - ANTI MLONGO</div></div>
-<div id="emergencyBox" style="display:none;background:#ff0000;border:3px solid yellow;border-radius:12px;padding:12px;margin-top:12px">
+<div id="emergencyBox" style="display:none;background:#ff0000;border:3px solid yellow;border-radius:12px;padding:12px;margin-top:12px;width:100%;max-width:500px;box-sizing:border-box">
 <div style="color:yellow;font-weight:900;text-align:center">⚠️ ADA <span id="offlineCount">0</span> DATA PAGI NYANGKUT DI HP INI</div>
 <button onclick="KIRIM_RIWAYAT_PAGI()" class="btn" style="background:#ffff00;color:#000;font-size:20px;padding:20px">🚨 KLIK KIRIM ULANG 400 DATA PAGI</button>
 <div id="kirimProgress" style="color:white;text-align:center;margin-top:8px;font-weight:700"></div>
 </div>
-  <div class="box">
-<div style="font-weight:900;color:#ffdf8a;text-align:center" id="tipe">SCAN</div>
-<div id="steps" style="margin-top:8px;text-align:center"></div>
-<div id="step-info" style="text-align:center;margin-top:8px;font-weight:900;color:gold">Siap Scan</div>
+
+<div class="box">
+<div style="font-weight:900;color:#ffdf8a;text-align:center;width:100%" id="tipe">SCAN</div>
+<div id="steps" style="margin-top:8px;text-align:center;width:100%"></div>
+<div id="step-info" style="text-align:center;margin-top:8px;font-weight:900;color:gold;width:100%">Siap Scan</div>
 <div id="reader"><div id="scan-guide"></div></div>
-<div id="list-preview"><div style="color:#888">Belum ada QR BAK - Scan 8x</div></div>
+<div id="list-preview" style="width:100%"><div style="color:#888">Belum ada QR BAK - Scan 8x</div></div>
 <button onclick="paksaFokus()" class="btn" style="background:#2563eb;color:white">🔍 TAP JIKA BLUR</button>
-<div style="display:flex;gap:6px">
+<div style="display:flex;gap:6px;width:100%">
 <button onclick="setZoom(1)" class="btn" style="background:#333;color:white;flex:1">1x</button>
 <button onclick="setZoom(2.5)" class="btn" style="background:gold;color:black;flex:1">2.5x</button>
 <button onclick="toggleTorch()" class="btn" style="background:#333;color:white;flex:1">🔦</button>
 <button onclick="gantiKamera()" class="btn" style="background:#0d2a54;color:white;flex:1;border:2px solid #2a5aa8">🔄</button>
 </div>
-</div>
-</div>
-<input id="manual" placeholder="Ketik manual jika QR rusak" autocomplete="off" autocapitalize="characters" spellcheck="false">
+<input id="manual" placeholder="Ketik manual jika QR rusak" autocomplete="off" autocapitalize="characters" spellcheck="false" style="margin-top:12px">
 <button onclick="inputManual()" class="btn" style="background:#333;color:white">INPUT MANUAL</button>
-<div id="status" style="text-align:center;margin-top:10px;color:#0f0;font-weight:900"></div>
-<div id="bdlCounter" style="display:none;text-align:center;margin-top:8px;background:#ffeb00;color:#000;font-weight:900;padding:8px;border-radius:8px"></div>
+<div id="status" style="text-align:center;margin-top:10px;color:#0f0;font-weight:900;width:100%"></div>
+<div id="bdlCounter" style="display:none;text-align:center;margin-top:8px;background:#ffeb00;color:#000;font-weight:900;padding:8px;border-radius:8px;width:100%"></div>
 <button onclick="resetScan()" class="btn" style="background:#222;color:white">🔄 ULANG SEMUA</button>
-</div>
 <button onclick="location.href='index.html'" class="btn" style="background:#b91c1c;color:white;border:2px solid gold">⬅ KEMBALI</button>
+</div>
+
 <div id="resultBox"><div class="card"><div id="resStep" style="color:gold;font-weight:900;font-size:14px"></div><h2 style="color:white;margin:8px 0">Hasil Scan:</h2><h1 id="resValue" style="color:#0f0;word-break:break-all;font-size:22px;background:#000;padding:14px;border-radius:8px;border:1px solid #444"></h1><div id="extraInfo" style="color:#ffeb00;margin-top:10px;font-weight:700"></div><div style="display:flex;gap:10px;margin-top:18px"><button onclick="confirmScan()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI</button><button onclick="ulangCurrent()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG</button></div></div></div>
 <div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
 <script>
@@ -385,16 +347,41 @@ async function kirimData(){
   setTimeout(()=>{ resetScan(); },1200);
 }
 async function startCam(camId){
-  if(html5QrcodeScanner){ try{ await html5QrcodeScanner.stop(); }catch(e){} }
-  html5QrcodeScanner=new Html5Qrcode("reader");
-  let config={fps:15,qrbox:{width:280,height:280},aspectRatio:1.0,videoConstraints:{facingMode:"environment"}};
-  if(camId) config.videoConstraints={deviceId:{exact:camId}};
-  try{
-    await html5QrcodeScanner.start(camId||{facingMode:"environment"}, config, onScanSuccess, ()=>{});
-    cams=await Html5Qrcode.getCameras();
-  }catch(e){ document.getElementById('status').innerText='❌ Kamera error: '+e; }
-}
+  if(html5QrcodeScanner){ 
+    try{ await html5QrcodeScanner.stop(); }catch(e){}
+    try{ await html5QrcodeScanner.clear(); }catch(e){}
+  }
+  html5QrcodeScanner = new Html5Qrcode("reader", { verbose: false });
+  
+  // CONFIG ANTI GELAP
+  let config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
+  };
 
+  // CAMERA ID - JANGAN PAKE videoConstraints DIDALEM CONFIG
+  let cameraConfig;
+  if(camId){
+    cameraConfig = { deviceId: { exact: camId } };
+  } else {
+    cameraConfig = { facingMode: "environment" }; // JANGAN PAKE exact, JANGAN PAKE videoConstraints
+  }
+
+  try{
+    await html5QrcodeScanner.start(cameraConfig, config, onScanSuccess, ()=>{});
+    document.getElementById('status').innerText = '✅ Kamera nyala';
+    cams = await Html5Qrcode.getCameras();
+  }catch(e){ 
+    console.log(e);
+    // FALLBACK - COBA TANPA DEVICE ID
+    try{
+      await html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess, ()=>{});
+    }catch(e2){
+      document.getElementById('status').innerText = '❌ Kamera error: ' + e2;
+    }
+  }
+}
 (async()=>{
   renderSteps();
   // CEK AUTO HAPUS MINGGUAN
