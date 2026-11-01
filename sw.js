@@ -2,9 +2,10 @@ const CACHE_NAME = 'qc-scan-v3-final-terang';
 const urlsToCache = [
   './',
   './index.html',
+  './scan.html',
+  './riwayat.html',
   './manifest.json',
   './logo.png'
-  // scan.html SENGAJA GAK DI CACHE BIAR SELALU TERBARU!
 ];
 
 self.addEventListener('install', event => {
@@ -23,9 +24,17 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Kalau scan.html, JANGAN pakai cache, ambil dari internet terbaru!
+  // Kalau scan.html, coba internet dulu biar terbaru, kalau offline baru pakai cache!
   if (event.request.url.includes('scan.html')) {
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    event.respondWith(
+      fetch(event.request)
+        .then(res => {
+          // kalau online, simpan yang terbaru ke cache
+          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
   event.respondWith(
