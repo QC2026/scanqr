@@ -66,9 +66,45 @@ function resetScan(){cur=0;res={};listBak=[];tempScan='';document.getElementById
 function paksaFokus(){try{html5QrcodeScanner.resume();}catch(e){}document.getElementById('status').innerText='🔍 Fokus...';}
 function setZoom(z){try{html5QrcodeScanner.applyVideoConstraints({advanced:[{zoom:z}]});}catch(e){}}
 function toggleTorch(){torchOn=!torchOn;try{html5QrcodeScanner.applyVideoConstraints({advanced:[{torch:torchOn}]});}catch(e){}}
-async function gantiKamera(){if(cams.length==0){try{cams=await Html5Qrcode.getCameras();}catch(e){}}if(cams.length>1){currentCam=(currentCam+1)%cams.length;startCam(cams[currentCam].id);}}
+async function gantiKamera(){
+  if(cams.length==0){ 
+    try{ cams = await Html5Qrcode.getCameras(); }catch(e){} 
+  }
+  if(cams.length>1){
+    currentCam = (currentCam+1) % cams.length;
+    try{ 
+      if(html5QrcodeScanner && html5QrcodeScanner.isScanning) 
+        await html5QrcodeScanner.stop(); 
+    }catch(e){}
+    setTimeout(()=>{ startCam(cams[currentCam].id); }, 300);
+  } else {
+    document.getElementById('status').innerText='Hanya 1 kamera';
+  }
+}
 async function kirimData(){const wib=getWIBDateTime();let payload={};if(TYPE=='BALL'){payload={QR_BAK:listBak.join(','),ID_BALL:res.ID_BALL||'',NO_BOX:res.NO_BOX||'',BAGIAN:TYPE,TGL_KMS:wib.full_client,TGL_CLIENT:wib.tgl_client,JAM_CLIENT:wib.jam_client,TGL_JAM_CLIENT:wib.full_client,TYPE:'BALL'};}else{payload={QR_BAK:res.QR_BAK||'',ID_PC:res.ID_PC||'',ID_GL:res.ID_GL||'',ID_GL2:res.ID_GL2||'',ID_KMS:res.ID_KMS||'',ID_PACK:res.ID_PACK||'',ID_BDL:res.ID_BDL||'',ID_BALL:res.ID_BALL||'',NO_BOX:res.NO_BOX||'',BAGIAN:TYPE,TGL_KMS:wib.full_client,TGL_CLIENT:wib.tgl_client,JAM_CLIENT:wib.jam_client,TGL_JAM_CLIENT:wib.full_client,TYPE:TYPE};}try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');all.push({QR_BAK:payload.QR_BAK,ID_PC:payload.ID_PC,ID_GL:payload.ID_GL,ID_GL2:payload.ID_GL2,ID_KMS:payload.ID_KMS,ID_PACK:payload.ID_PACK,ID_BDL:payload.ID_BDL,ID_BALL:payload.ID_BALL,NO_BOX:payload.NO_BOX,BAGIAN:TYPE,TANGGAL:wib.full_client,TGL_CLIENT:wib.tgl_client,JAM_CLIENT:wib.jam_client,waktu:wib.full_client,status:'Lokal',TGL_JAM_CLIENT:wib.full_client});localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));}catch(e){}document.getElementById('status').innerText='⏳ Kirim...';try{await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),mode:'no-cors'});document.getElementById('status').innerText='✅ Terkirim!';try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');if(all.length>0)all[all.length-1].status='Terkirim';localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));}catch(e){}}catch(e){document.getElementById('status').innerText='📱 Disimpen Lokal';}setTimeout(()=>{resetScan();},1200);}
-async function startCam(camId){if(html5QrcodeScanner){try{await html5QrcodeScanner.stop();}catch(e){}try{await html5QrcodeScanner.clear();}catch(e){}}html5QrcodeScanner=new Html5Qrcode("reader",{verbose:false});let config={fps:10,qrbox:{width:250,height:250}};let cameraConfig=camId?{deviceId:{exact:camId}}:{facingMode:"environment"};try{await html5QrcodeScanner.start(cameraConfig,config,onScanSuccess,()=>{});document.getElementById('status').innerText='✅ Kamera nyala - '+TYPE;cams=await Html5Qrcode.getCameras();}catch(e){try{await html5QrcodeScanner.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},onScanSuccess,()=>{});}catch(e2){document.getElementById('status').innerText='❌ Kamera error: '+e2;}}}
-(async()=>{renderSteps();let lastClean=parseInt(localStorage.getItem('last_clean_hp')||0);let seminggu=7*24*60*60*1000;if(Date.now()-lastClean>seminggu){autoHapusRiwayatHP_Mingguan();}cekOffline();startCam();})();
+async function startCam(camId){
+  if(html5QrcodeScanner){
+    try{
+      if(html5QrcodeScanner.isScanning){
+        await html5QrcodeScanner.stop();
+      }
+    }catch(e){}
+  } else {
+    html5QrcodeScanner = new Html5Qrcode("reader", {verbose:false});
+  }
+
+  let config = { fps: 10, qrbox: { width: 250, height: 250 } };
+  let cameraConfig = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" };
+
+  try{
+    await html5QrcodeScanner.start(cameraConfig, config, onScanSuccess, ()=>{});
+    document.getElementById('status').innerText = '✅ Kamera nyala - '+TYPE;
+    try{ cams = await Html5Qrcode.getCameras(); }catch(e){}
+  }catch(e){
+    document.getElementById('status').innerText = '❌ Kamera error: ' + e;
+    // Jangan coba start lagi kalau error clear ongoing
+  }
+}
+ (async()=>{renderSteps();let lastClean=parseInt(localStorage.getItem('last_clean_hp')||0);let seminggu=7*24*60*60*1000;if(Date.now()-lastClean>seminggu){autoHapusRiwayatHP_Mingguan();}cekOffline();startCam();})();
 </script>
 </body></html>
