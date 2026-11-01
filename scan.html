@@ -49,9 +49,107 @@ const FLOWS={'GL':['QR CODE BAK','ID PC','ID GL 1','ID GL 2'],'KMS':['QR CODE BA
 let flow=FLOWS[TYPE]||FLOWS['BALL']; let cur=0; let res={}; let listBak=[]; let html5QrcodeScanner; let lastScanTime=0; let isPause=false; let tempScan=""; let torchOn=false; let currentCam=0; let cams=[];
 function autoHapusRiwayatHP_Mingguan(){try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');if(!all.length)return;let now=new Date();let batas=new Date();batas.setDate(now.getDate()-7);let awal=all.length;let sisa=all.filter(d=>{try{let tglStr=d.waktu||d.TGL_JAM_CLIENT||d.TANGGAL||d.TGL_CLIENT||"";let tgl=new Date(tglStr);if(isNaN(tgl.getTime())){let p=tglStr.split(/[\s,]+/)[0].split('/');if(p.length==3)tgl=new Date(p[2],p[1]-1,p[0]);else return true;}return tgl>=batas;}catch(e){return true;}});let kehapus=awal-sisa.length;if(kehapus>0){localStorage.setItem('riwayat',JSON.stringify(sisa));localStorage.setItem('riwayat_scan',JSON.stringify(sisa));}localStorage.setItem('last_clean_hp',Date.now());}catch(e){}}
 function renderSteps(){let h='';if(TYPE=='BALL'){if(cur==0)h+=`<span class="step active">▶ QR BAK [${listBak.length}/8]</span>`;else h+=`<span class="step done">✓ QR BAK [8/8]</span>`;flow.slice(1).forEach((s,i)=>{let stepIdx=i+1;let cls=stepIdx<cur?'done':stepIdx==cur?'active':'wait';h+=`<span class="step ${cls}">${stepIdx<cur?'✓ ':stepIdx==cur?'▶ ':''}${s}</span>`;});document.getElementById('step-info').innerText=cur==0?`Siap Scan [${listBak.length}/8]`:flow[cur];document.getElementById('list-preview').style.display='block';}else{flow.forEach((s,i)=>{let cls=i<cur?'done':i==cur?'active':'wait';h+=`<span class="step ${cls}">${i<cur?'✓ ':i==cur?'▶ ':''}${s}</span>`;});document.getElementById('step-info').innerText=flow[cur]||'Siap Scan';document.getElementById('list-preview').style.display='none';}document.getElementById('steps').innerHTML=h;}
-function getWIBDateTime(){const now=new Date();return{tgl_client:now.toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}),tgl_client_id:now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}),jam_client:now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false}),full_client:now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'})+' '+now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false}),raw:now};}
+function getWIBDateTime(tglLama) {
+  // Kalau ada tglLama (dari riwayat offline tgl 31), pakai itu!
+  // Kalau gak ada, baru pakai now (jam sekarang)
+  const now = tglLama ? new Date(tglLama) : new Date();
+  
+  // Kalau tglLama string format ID "31/10/2026 15:30:00" ubah dulu jadi Date
+  if (tglLama && typeof tglLama === 'string' && tglLama.includes('/')) {
+    try {
+      let parts = tglLama.split(' ');
+      if (parts.length == 2) {
+        let tp = parts[0].split('/');
+        let jp = parts[1].split(':');
+        const fixed = new Date(tp[2], tp[1]-1, tp[0], jp[0], jp[1], jp[2]||0);
+        if (!isNaN(fixed.getTime())) return getWIBDateTime(fixed);
+      }
+    } catch(e) {}
+  }
+
+  return {
+    tgl_client: now.toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}),
+    tgl_client_id: now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}),
+    jam_client: now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false}),
+    full_client: now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'})+' '+now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false}),
+    raw: now
+  };
+}
 function cekOffline(){try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let offline=all.filter(d=>d.status=='Lokal').length;if(offline>0){document.getElementById('emergencyBox').style.display='block';document.getElementById('offlineCount').innerText=offline;}else{document.getElementById('emergencyBox').style.display='none';}}catch(e){}}
-async function KIRIM_RIWAYAT_PAGI(){let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let toSend=all.filter(d=>d.status=='Lokal');if(!toSend.length){alert("Gak ada data nyangkut");return;}if(!confirm("Kirim "+toSend.length+" data?"))return;document.getElementById('kirimProgress').innerText="⏳ Mengirim 0/"+toSend.length+"...";let sukses=0;for(let i=0;i<toSend.length;i++){let d=toSend[i];let payload={QR_BAK:d.QR_BAK,ID_PC:d.ID_PC||'',ID_GL:d.ID_GL||'',ID_GL2:d.ID_GL2||'',ID_KMS:d.ID_KMS||'',ID_PACK:d.ID_PACK||'',ID_BDL:d.ID_BDL||'',ID_BALL:d.ID_BALL||'',NO_BOX:d.NO_BOX||'',BAGIAN:d.BAGIAN||TYPE,TGL_KMS:d.TANGGAL,TGL_CLIENT:d.TGL_CLIENT,JAM_CLIENT:d.JAM_CLIENT,TGL_JAM_CLIENT:d.waktu||d.TGL_JAM_CLIENT,TYPE:d.ID_BALL?'BALL':TYPE};try{await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),mode:'no-cors'});sukses++;document.getElementById('kirimProgress').innerText=`⏳ Mengirim ${sukses}/${toSend.length}...`;await new Promise(r=>setTimeout(r,300));}catch(e){}}all.forEach(d=>{if(d.status=='Lokal')d.status='Terkirim Ulang Pagi';});localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));document.getElementById('kirimProgress').innerText=`✅ BERES! ${sukses} DATA MASUK!`;alert(`BERES! ${sukses} data udah masuk!`);cekOffline();}
+async function KIRIM_RIWAYAT_PAGI(){
+  let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+  let toSend=all.filter(d=>d.status=='Lokal');
+  if(!toSend.length){alert("Gak ada data nyangkut");return;}
+  if(!confirm("Kirim "+toSend.length+" data? Sesuai jam aslinya!"))return;
+  document.getElementById('kirimProgress').innerText="⏳ Mengirim 0/"+toSend.length+"...";
+  let sukses=0;
+  
+  for(let i=0;i<all.length;i++){
+    if(all[i].status!='Lokal') continue;
+    let d=all[i];
+    
+    // BULAN ASLI PAS SCAN, BUKAN BULAN SEKARANG!
+    let tglClient = d.TGL_CLIENT || '';
+    if(!tglClient && d.TANGGAL){
+      // parse dari "31/10/2026 ..." jadi "2026-10-31"
+      try{
+        let p = d.TANGGAL.split(' ')[0].split('/');
+        tglClient = p[2]+"-"+p[1].padStart(2,'0')+"-"+p[0].padStart(2,'0');
+      }catch(e){ tglClient = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}); }
+    }
+    let bulanAsli = tglClient.slice(0,7); // YYYY-MM asli tgl 31
+    let targetSheet = "DATA_BAK_" + bulanAsli;
+
+    // LIST_BAK kalau ada koma (BALL 8 biji)
+    let listBakArr = [];
+    if(d.QR_BAK && d.QR_BAK.includes(',')){
+      listBakArr = d.QR_BAK.split(',').map(s=>s.trim()).filter(s=>s);
+    } else if(d.QR_BAK){
+      listBakArr = [d.QR_BAK];
+    }
+
+    let payload={
+      QR_BAK: d.QR_BAK,
+      LIST_BAK: listBakArr,
+      ID_PC: d.ID_PC||'',
+      ID_GL: d.ID_GL||'',
+      ID_GL2: d.ID_GL2||'',
+      ID_KMS: d.ID_KMS||'',
+      ID_PACK: d.ID_PACK||'',
+      ID_BDL: d.ID_BDL||'',
+      ID_BALL: d.ID_BALL||'',
+      NO_BOX: d.NO_BOX||'',
+      BAGIAN: d.BAGIAN||TYPE,
+      TYPE: listBakArr.length > 1 ? 'BALL_8' : (d.ID_BALL?'BALL':(d.BAGIAN||TYPE)),
+      // INI KUNCI MIN - PAKAI JAM LAMA TGL 31!
+      JAM_HP: d.TANGGAL || d.waktu || d.TGL_JAM_CLIENT,
+      TGL_JAM_CLIENT: d.waktu || d.TGL_JAM_CLIENT || d.TANGGAL,
+      TGL_CLIENT: tglClient,
+      JAM_CLIENT: d.JAM_CLIENT,
+      TGL_KMS: d.TANGGAL,
+      TARGET_SHEET: targetSheet
+    };
+
+    try{
+      await fetch(GOOGLE_URL,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify(payload),
+        mode:'no-cors'
+      });
+      sukses++;
+      all[i].status='Terkirim Ulang Pagi - '+bulanAsli;
+      document.getElementById('kirimProgress').innerText=`⏳ Mengirim ${sukses}/${toSend.length} ke ${targetSheet}...`;
+      await new Promise(r=>setTimeout(r,500));
+    }catch(e){}
+  }
+  
+  localStorage.setItem('riwayat',JSON.stringify(all));
+  localStorage.setItem('riwayat_scan',JSON.stringify(all));
+  document.getElementById('kirimProgress').innerText=`✅ BERES! ${sukses} DATA MASUK SESUAI BULAN ASLI!`;
+  alert(`BERES! ${sukses} data udah masuk sesuai jam aslinya! Cek sheet DATA_BAK_2026-10 ya!`);
+  cekOffline();
+}
 function hitungBDL(idBdl){if(!idBdl)return 0;try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let todayID=new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});let todayEN=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});return all.filter(d=>{let waktu=(d.waktu||'')+' '+(d.TGL_CLIENT||'')+' '+(d.TANGGAL||'');let isHariIni=waktu.includes(todayID)||waktu.includes(todayEN);return isHariIni&&(d.ID_BDL||'').toUpperCase()==idBdl.toUpperCase();}).length;}catch(e){return 0;}}
 function validatePager(value,step){step=step.toUpperCase();value=value.trim();if(step.includes('QR CODE BAK')||step.includes('QR BAK')){if(!/^[A-Z0-9]+-[0-9]+$/i.test(value))return "BUKAN QR BAK! Harusnya BAK-001";}if(step.includes('ID PC')||step.includes('ID GL')||step.includes('ID KMS')||step.includes('ID PACK')||step.includes('ID BDL')){if(!/^\d{6}$/.test(value))return "BUKAN ID 6 ANGKA! Harusnya 6 ANGKA";}return "";}
 function onScanSuccess(decoded){if(isPause)return;const now=Date.now();if(now-lastScanTime<800)return;lastScanTime=now;decoded=decoded.trim().toUpperCase();let stepSekarang="";if(TYPE=='BALL'&&cur==0)stepSekarang="QR CODE BAK";else stepSekarang=flow[cur]||"";let cekSalah=validatePager(decoded,stepSekarang);if(cekSalah){let guide=document.getElementById('scan-guide');guide.style.borderColor="#ff0000";guide.style.boxShadow="0 0 0 4000px rgba(255,0,0,0.6)";document.getElementById('status').innerHTML=`<div style="background:#ff0000;color:white;padding:15px;border-radius:12px;border:3px solid yellow;text-align:center"><div style="font-size:20px;font-weight:900">⛔ SALAH! ${cekSalah}<br><small style="font-size:14px">${decoded}</small></div><button onclick="resetError()" style="margin-top:10px;width:100%;padding:12px;background:white;color:red;font-weight:900;border-radius:8px;border:none">🔄 OKE, SCAN LAGI</button></div>`;if(navigator.vibrate)navigator.vibrate([300,100,300,100,500]);setTimeout(()=>{resetError();},3500);return;}if(TYPE=='BALL'&&cur==0){if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!';return;}listBak.push(decoded);document.getElementById('list-preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');renderSteps();document.getElementById('status').innerText=`✅ Masuk ${listBak.length}/8`;if(listBak.length<8)return;document.getElementById('list8Preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');document.getElementById('verify8Box').style.display='block';isPause=true;try{html5QrcodeScanner.pause(true);}catch(e){}return;}isPause=true;tempScan=decoded;try{html5QrcodeScanner.pause(true);}catch(e){}document.getElementById('resStep').innerText=flow[cur];document.getElementById('resValue').innerText=decoded;document.getElementById('extraInfo').innerText='';if(TYPE=='BDL'&&flow[cur]=='ID BDL'){let c=hitungBDL(decoded)+1;document.getElementById('extraInfo').innerText=`🔢 ID BDL ini sudah scan ${c}x`;document.getElementById('bdlCounter').style.display='block';document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x scan hari ini`;}document.getElementById('resultBox').style.display='block';}
@@ -81,7 +179,67 @@ async function gantiKamera(){
     document.getElementById('status').innerText='Hanya 1 kamera';
   }
 }
-async function kirimData(){const wib=getWIBDateTime();let payload={};if(TYPE=='BALL'){payload={QR_BAK:listBak.join(','),ID_BALL:res.ID_BALL||'',NO_BOX:res.NO_BOX||'',BAGIAN:TYPE,TGL_KMS:wib.full_client,TGL_CLIENT:wib.tgl_client,JAM_CLIENT:wib.jam_client,TGL_JAM_CLIENT:wib.full_client,TYPE:'BALL'};}else{payload={QR_BAK:res.QR_BAK||'',ID_PC:res.ID_PC||'',ID_GL:res.ID_GL||'',ID_GL2:res.ID_GL2||'',ID_KMS:res.ID_KMS||'',ID_PACK:res.ID_PACK||'',ID_BDL:res.ID_BDL||'',ID_BALL:res.ID_BALL||'',NO_BOX:res.NO_BOX||'',BAGIAN:TYPE,TGL_KMS:wib.full_client,TGL_CLIENT:wib.tgl_client,JAM_CLIENT:wib.jam_client,TGL_JAM_CLIENT:wib.full_client,TYPE:TYPE};}try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');all.push({QR_BAK:payload.QR_BAK,ID_PC:payload.ID_PC,ID_GL:payload.ID_GL,ID_GL2:payload.ID_GL2,ID_KMS:payload.ID_KMS,ID_PACK:payload.ID_PACK,ID_BDL:payload.ID_BDL,ID_BALL:payload.ID_BALL,NO_BOX:payload.NO_BOX,BAGIAN:TYPE,TANGGAL:wib.full_client,TGL_CLIENT:wib.tgl_client,JAM_CLIENT:wib.jam_client,waktu:wib.full_client,status:'Lokal',TGL_JAM_CLIENT:wib.full_client});localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));}catch(e){}document.getElementById('status').innerText='⏳ Kirim...';try{await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),mode:'no-cors'});document.getElementById('status').innerText='✅ Terkirim!';try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');if(all.length>0)all[all.length-1].status='Terkirim';localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));}catch(e){}}catch(e){document.getElementById('status').innerText='📱 Disimpen Lokal';}setTimeout(()=>{resetScan();},1200);}
+  async function kirimData(){
+  const wib = getWIBDateTime();
+  // TARGET_SHEET ngikut jam scan, bukan jam sync!
+  let bulanScan = wib.tgl_client.slice(0,7); // ambil YYYY-MM dari tgl scan
+  let targetSheet = "DATA_BAK_" + bulanScan;
+  
+  let payload = {};
+  if(TYPE=='BALL'){
+    // JANGAN DI JOIN PAKAI KOMA, PAKAI ARRAY!
+    payload={
+      TYPE: listBak.length > 1 ? 'BALL_8' : 'BALL',
+      LIST_BAK: listBak, // <-- ARRAY, bukan join(',')
+      QR_BAK: listBak[0] || '', // backup
+      ID_BALL: res.ID_BALL||'',
+      NO_BOX: res.NO_BOX||'',
+      BAGIAN: TYPE,
+      JAM_HP: wib.full_client, // <-- WAJIB ADA INI
+      TGL_JAM_CLIENT: wib.full_client,
+      TGL_CLIENT: wib.tgl_client,
+      JAM_CLIENT: wib.jam_client,
+      TARGET_SHEET: targetSheet // <-- WAJIB BIAR MASUK OKTOBER
+    };
+  }else{
+    payload={
+      QR_BAK: res.QR_BAK||'',
+      ID_PC: res.ID_PC||'',
+      ID_GL: res.ID_GL||'',
+      ID_GL2: res.ID_GL2||'',
+      ID_KMS: res.ID_KMS||'',
+      ID_PACK: res.ID_PACK||'',
+      ID_BDL: res.ID_BDL||'',
+      ID_BALL: res.ID_BALL||'',
+      NO_BOX: res.NO_BOX||'',
+      BAGIAN: TYPE,
+      JAM_HP: wib.full_client,
+      TGL_JAM_CLIENT: wib.full_client,
+      TGL_CLIENT: wib.tgl_client,
+      JAM_CLIENT: wib.jam_client,
+      TGL_KMS: wib.full_client,
+      TYPE: TYPE,
+      TARGET_SHEET: targetSheet
+    };
+  }
+
+  // simpen riwayat pakai jam asli scan
+  try{
+    let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+    all.push({...payload, TANGGAL:wib.full_client, waktu:wib.full_client, status:'Lokal'});
+    localStorage.setItem('riwayat',JSON.stringify(all));
+    localStorage.setItem('riwayat_scan',JSON.stringify(all));
+  }catch(e){}
+
+  document.getElementById('status').innerText='⏳ Kirim...';
+  try{
+    await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),mode:'no-cors'});
+    document.getElementById('status').innerText='✅ Terkirim ke ' + targetSheet;
+  }catch(e){
+    document.getElementById('status').innerText='📱 Disimpen Lokal ('+bulanScan+')';
+  }
+  setTimeout(()=>{resetScan();},1200);
+}
 async function startCam(camId){
   if(html5QrcodeScanner){
     try{
