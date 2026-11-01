@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>PT URIP SUGIARTO - FINAL BERSIH</title>
+<title>PT URIP SUGIARTO</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12px;display:flex;flex-direction:column;align-items:center;min-height:100vh;box-sizing:border-box;overflow-x:hidden}
@@ -24,7 +24,6 @@ input{width:100%;max-width:400px;padding:12px;background:#222;border:1px solid #
 </style>
 </head><body>
 <div class="header"><div style="width:50px;height:50px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center"><img src="logo.png" style="width:100%;height:100%;border-radius:50%"></div><div class="pt">PT. URIP SUGIARTO </div></div>
-<div id="emergencyBox" style="display:none;background:#ff0000;border:3px solid yellow;border-radius:12px;padding:12px;margin-top:12px;width:100%;max-width:500px;box-sizing:border-box"><div style="color:yellow;font-weight:900;text-align:center">⚠️ ADA <span id="offlineCount">0</span> DATA PAGI NYANGKUT</div><button onclick="KIRIM_RIWAYAT_PAGI()" class="btn" style="background:#ffff00;color:#000">🚨 KIRIM ULANG DATA PAGI</button><div id="kirimProgress" style="color:white;text-align:center;margin-top:8px;font-weight:700"></div></div>
 <div class="box">
 <div style="font-weight:900;color:#ffdf8a;text-align:center;width:100%" id="tipe">SCAN</div>
 <div id="steps" style="margin-top:8px;text-align:center;width:100%"></div>
@@ -75,7 +74,6 @@ function getWIBDateTime(tglLama) {
     raw: now
   };
 }
-function cekOffline(){try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let offline=all.filter(d=>d.status=='Lokal').length;if(offline>0){document.getElementById('emergencyBox').style.display='block';document.getElementById('offlineCount').innerText=offline;}else{document.getElementById('emergencyBox').style.display='none';}}catch(e){}}
 async function KIRIM_RIWAYAT_PAGI(){
   let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
   let toSend=all.filter(d=>d.status=='Lokal');
@@ -263,6 +261,6 @@ async function startCam(camId){
     // Jangan coba start lagi kalau error clear ongoing
   }
 }
- (async()=>{renderSteps();let lastClean=parseInt(localStorage.getItem('last_clean_hp')||0);let seminggu=7*24*60*60*1000;if(Date.now()-lastClean>seminggu){autoHapusRiwayatHP_Mingguan();}cekOffline();startCam();})();
+ (async()=>{renderSteps();let lastClean=parseInt(localStorage.getItem('last_clean_hp')||0);let seminggu=7*24*60*60*1000;if(Date.now()-lastClean>seminggu){autoHapusRiwayatHP_Mingguan();}startCam();})();
 </script>
 </body></html>
