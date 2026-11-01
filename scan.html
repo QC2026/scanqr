@@ -15,17 +15,48 @@ if(typeof Html5Qrcode === 'undefined'){
   document.write('<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"><\/script>');
 }
 </script>
-<style>
- <style>
-*{box-sizing:border-box}
-body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12px;width:100%;overflow-x:hidden}
-.header{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#1a1a1a,#000);border:2px solid #c9a84c;border-radius:12px;padding:10px;width:100%}
+  <style>
+body{
+  margin:0;
+  background:#0a0a0a;
+  color:#ffd700;
+  font-family:sans-serif;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+  width:100%;
+  box-sizing:border-box;
+}
+.header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:linear-gradient(180deg,#1a1a1a,#000);
+  border:2px solid #c9a84c;
+  border-radius:12px;
+  padding:10px;
+  width:100%;
+  max-width:500px;
+  box-sizing:border-box;
+}
 .pt{background:#b91c1c;border:2px solid gold;border-radius:10px;padding:8px 12px;color:white;font-weight:900;flex:1;text-align:center}
-.box{background:#111;border:2px solid #c9a84c;border-radius:12px;padding:12px;margin-top:12px;width:100%;max-width:100%;display:block;overflow:hidden}
+.box{
+  background:#111;
+  border:2px solid #c9a84c;
+  border-radius:12px;
+  padding:12px;
+  margin-top:12px;
+  width:100%;
+  max-width:400px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  box-sizing:border-box;
+}
 .step{display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:4px;border:1px solid #444}
 .active{background:gold;color:black}.done{background:#0f0;color:black}.wait{background:#222;color:#888}
-
-/* KAMERA 280 TENGAH ANTI MINGGAT */
 #reader{
   width:280px !important;
   min-width:280px !important;
@@ -34,10 +65,6 @@ body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12
   min-height:280px !important;
   max-height:280px !important;
   margin:12px auto !important;
-  float:none !important;
-  left:auto !important;
-  right:auto !important;
-  transform:none !important;
   position:relative !important;
   display:block !important;
   background:#000;
@@ -46,16 +73,13 @@ body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12
   overflow:hidden !important;
 }
 #reader video{width:100% !important;height:100% !important;object-fit:cover !important}
-#reader div{max-width:280px !important}
-
 #scan-guide{border:4px solid #ffeb00;box-shadow:0 0 0 4000px rgba(0,0,0,0.45);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:250px;height:250px;z-index:5}
 #scan-guide::before{content:'ARAHKAN QR KESINI';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#ffeb00;color:#000;font-weight:900;padding:2px 10px;white-space:nowrap;font-size:11px}
-
-.btn{width:100%;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px}
+.btn{width:100%;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px;box-sizing:border-box}
 input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;border-radius:8px;box-sizing:border-box;margin-top:8px}
 #resultBox,#verify8Box{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;padding:20px;box-sizing:border-box;overflow:auto}
 .card{background:#1a1a1a;border:3px solid gold;border-radius:16px;padding:20px;text-align:center;margin-top:10%}
-#list-preview{background:#000;border:1.5px solid #0f0;border-radius:8px;padding:8px;margin-top:8px;max-height:180px;overflow:auto;text-align:left;font-size:13px;color:#0f0;width:100%}
+#list-preview{background:#000;border:1.5px solid #0f0;border-radius:8px;padding:8px;margin-top:8px;max-height:180px;overflow:auto;text-align:left;font-size:13px;color:#0f0;width:100%;box-sizing:border-box}
 </style>
 </head>
 <body>
