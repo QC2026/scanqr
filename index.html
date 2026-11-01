@@ -12,7 +12,7 @@ body{margin:0;background:#080808;color:#ffd700;font-family:sans-serif;padding:12
 .scan-sub{font-size:12px;color:#c9a84c;margin-top:4px;margin-bottom:14px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{background:linear-gradient(145deg,#1c1c1c,#0e0e0e);border:2px solid #c9a84c;border-radius:16px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;box-shadow:0 0 12px rgba(201,168,76,.18)}
-.card .icon{font-size:50px;margin-bottom:6px;filter:drop-shadow(0 0 5px gold)}
+.card .icon{font-size:50px;margin-bottom:6px}
 .card .lbl{font-weight:900;font-size:14px;color:#ffdf8a}
 .card .sub{font-size:10px;color:#aaa;margin-top:4px;line-height:1.2}
 .card-gl{background:linear-gradient(180deg,#ffd700,#c9a84c);border-color:white}
@@ -21,6 +21,7 @@ body{margin:0;background:#080808;color:#ffd700;font-family:sans-serif;padding:12
 .btn-keluar{position:fixed;bottom:12px;left:12px;right:12px;z-index:99999;width:auto;padding:16px;border-radius:12px;background:#000;color:white;border:2px solid #b91c1c;font-weight:900;text-align:center;}
 .sync-bar{background:#1a1a1a;border:1px dashed #c9a84c;border-radius:8px;padding:8px;margin-top:10px;text-align:center;font-size:11px}
 </style>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}</script>
 </head><body>
 <div class="header">
   <div style="width:50px;height:50px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center"><img src="logo.png" style="width:100%;height:100%;border-radius:50%"></div>
@@ -60,10 +61,5 @@ async function autoSync(){
 window.addEventListener('online', autoSync);
 window.addEventListener('load', autoSync);
 setInterval(autoSync, 15000);
-</script>
-<script>
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./service-worker.js');
-}
 </script>
 </body></html>
