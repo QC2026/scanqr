@@ -94,10 +94,9 @@ function hitungBDL(idBdl){
         return idData === target && tglData === today;
       }catch(e){ return false; }
     });
-    return filtered.length + 1;
+    return filtered.length; // <-- HAPUS +1 NE, biar murni jumlah lama
   }catch(e){ return 0; }
 }
-
 // === ANTI NGADAT V5 - FINAL ===
 let lastScan = "";
 let lastTime = 0;
@@ -204,7 +203,8 @@ async function startCam(){
  document.getElementById('resValue').innerText=decoded;
  document.getElementById('extraInfo').innerText='';
  if(TYPE=='BDL' && flow[cur]=='ID BDL'){
-   let c=hitungBDL(decoded)+1;
+   let c_lama = hitungBDL(decoded); // misal 0
+   let c_tampil = c_lama + 1; // 0+1 = 1
    document.getElementById('extraInfo').innerText=`🔢 ID BDL ini sudah scan ${c}x (termasuk yang ini)`;
    document.getElementById('bdlCounter').style.display='block';
    document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x scan hari ini`;
