@@ -31,6 +31,29 @@ html,body{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
 <div id="steps" style="margin-top:8px"></div>
 <div id="step-info" style="text-align:center;margin-top:8px;font-weight:900;color:gold">Siap Scan [0/8]</div>
 <div id="reader"><div id="scan-guide"></div></div>
+  #reader{
+  width:100%;
+  min-height:65vh;
+  border-radius:12px;
+  overflow:hidden;
+  background:#000;
+  margin-top:12px;
+  position:relative
+}
+
+#scan-guide{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  width:250px;
+  height:250px;
+  border:4px solid #FFD600;
+  border-radius:12px;
+  box-shadow:0 0 0 4000px rgba(0,0,0,0.5);
+  z-index:10;
+  pointer-events:none;
+}
 <div id="list-preview"><div style="color:#888">Belum ada QR BAK - Scan 8x </div></div>
 <button onclick="paksaFokus()" class="btn" style="background:#2563eb;color:white">🔍 TAP JIKA BLUR</button>
 <div style="display:flex;gap:6px">
@@ -46,11 +69,6 @@ html,body{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
 <button onclick="resetScan()" class="btn" style="background:#222;color:white">🔄 ULANG SEMUA</button>
 </div>
 <button onclick="location.href='index.html'" class="btn" style="background:#b91c1c;color:white;border:2px solid gold">⬅ KEMBALI KE HALAMAN 1</button>
-<div id="riwayatBox" style="margin:20px; background:#f5f5f5; padding:10px; border-radius:8px; display:none;">
-  <h3 style="margin:0 0 10px 0;">📋 Riwayat Scan HP</h3>
-  <div id="listRiwayat"></div>
-  <button onclick="if(confirm('Hapus semua riwayat HP?')){localStorage.removeItem('riwayatScan');renderRiwayat();}" style="margin-top:10px; background:#ff4444; color:white; border:none; padding:8px 12px; border-radius:5px;">🗑️ HAPUS RIWAYAT HP</button>
-</div>
 <div id="resultBox"><div class="card"><div id="resStep" style="color:gold;font-weight:900;font-size:14px"></div><h2 style="color:white;margin:8px 0">Hasil Scan:</h2><h1 id="resValue" style="color:#0f0;word-break:break-all;font-size:22px;background:#000;padding:14px;border-radius:8px;border:1px solid #444"></h1><div id="extraInfo" style="color:#ffeb00;margin-top:10px;font-weight:700"></div><div style="display:flex;gap:10px;margin-top:18px"><button onclick="confirmScan()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI</button><button onclick="ulangCurrent()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG</button></div></div></div>
 
 <div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div style="color:white;font-size:12px;margin:6px 0">Cek dulu , 8 QR ini sudah SESUAI 1 BALL?</div><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
@@ -87,42 +105,65 @@ function getWIBDateTime(){
   return{tgl_client,tgl_client_id,jam_client,full_client,raw:now};
 }
 function hitungBDL(idBdl){
-  if(!idBdl) return 1;
+  if(!idBdl) return 0;
   try{
-    let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+    let all = JSON.parse(localStorage.getItem('riwayat') || '[]');
     let today = new Date().toDateString();
-    let filtered = all.filter(d=>{
+    let target = idBdl.trim().toUpperCase();
+    let filtered = all.filter(d => {
       try{
         let tglData = d.WIB ? new Date(d.WIB).toDateString() : '';
-        return (d.ID_BDL||'').toUpperCase()==idBdl.toUpperCase() && tglData==today;
-      }catch(e){return false;}
+        let idData = (d.ID_BDL || '').toString().toUpperCase().trim();
+        return idData === target && tglData === today;
+      }catch(e){ return false; }
     });
     return filtered.length + 1;
-  }catch(e){return 1;}
+  }catch(e){ return 0; }
 }
-// PAGER ANTI SALAH V2 - SUPPORT BAK-0001 & G1-001
-function validatePager(value,step){
-  step=step.toUpperCase();
-  value=value.trim().toUpperCase();
-  
-  // LAPIS 1: QR BAK -> BAK-0001 ATAU G1-001 (ADA TANDA -)
-  if(step.includes('QR CODE BAK')||step.includes('QR BAK')){
-    if(!/^[A-Z0-9]+-[A-Z0-9-]+$/i.test(value)) return "SALAH! INI BUKAN QR BAK! HARUSNYA BAK-0001 ATAU G1-001";
+
+// === ANTI NGADAT V5 - FINAL ===
+let lastScan = "";
+let lastTime = 0;
+
+function cegahDoubleScan(value){
+  let now = Date.now();
+  if(value === lastScan && (now - lastTime) < 3000){
+    return "Sabar min, ojo di scan dobel! Tunggu 3 detik";
+  }
+  lastScan = value;
+  lastTime = now;
+  return "";
+}
+
+function validatePager(value, step){
+  if(!value || !step) return "";
+  value = value.trim().toUpperCase();
+  step = step.toUpperCase();
+
+  // CEK 1: ANTI DOBEL DULU
+  let dobel = cegahDoubleScan(value);
+  if(dobel) return dobel;
+
+  // CEK 2: QR BAK
+  if(step.includes('QR CODE BAK') || step.includes('QR BAK')){
     if(/^\d+$/.test(value)) return "SALAH! INI ID ANGKA, BUKAN QR BAK!";
-    if(value.length < 5) return "SALAH! QR BAK KEPENDEKAN!";
+    if(!value.includes('-')) return "SALAH! QR BAK HARUS ADA - CONTOH: BAK-0001 / G1-001";
+    if(!/^[A-Z][A-Z0-9]*-[A-Z0-9-]+$/.test(value)) return "SALAH! FORMAT QR BAK SALAH!";
   }
   
-  // LAPIS 2: ID (HARUS ANGKA MURNI)
-  if(step.includes('ID PC')||step.includes('ID GL')||step.includes('ID KMS')||step.includes('ID PACK')||step.includes('ID BDL')||step.includes('ID BALL')){
-    if(value.includes('-')) return "SALAH! INI QR BAK (BAK-0001/G1-001), BUKAN ID! SCAN ID ANGKA 5-6 DIGIT!";
-    if(!/^\d{5,6}$/.test(value)) return "SALAH! ID HARUS 5 ATAU 6 ANGKA! CONTOH: 12345";
+  // CEK 3: ID 5-6 DIGIT
+  if(step.includes('ID PC') || step.includes('ID GL') || step.includes('ID KMS') || step.includes('ID PACK') || step.includes('ID BDL') || step.includes('ID BALL')){
+    if(value.includes('-')) return "SALAH! INI QR BAK, BUKAN ID!";
+    if(!/^\d{5,6}$/.test(value)) return "SALAH! ID HARUS 5 ATAU 6 ANGKA!";
   }
   
-  // LAPIS 3: NO BOX
-  if(step.includes('NO BOX')||step.includes('BOX')){
-    if(value.includes('BAK-') || /^[A-Z][0-9]+-/.test(value)) return "SALAH! INI QR BAK, BUKAN NO BOX!";
+  // CEK 4: NO BOX
+  if(step.includes('NO BOX') || step.includes('BOX')){
+    if(value.includes('BAK-') || /^[A-Z]+[0-9]*-/.test(value)) return "SALAH! INI QR BAK, BUKAN NO BOX!";
   }
   
+  // SUKSES - KASIH GETER
+  if(navigator.vibrate) navigator.vibrate(80);
   return "";
 }
 function onScanSuccess(decoded){
@@ -200,34 +241,69 @@ async function autoSave(){
   if(TYPE=='BDL'){ let c=hitungBDL(res['ID BDL']||''); document.getElementById('bdlCounter').style.display='block'; document.getElementById('bdlCounter').innerText=`🔢 Total scan BDL ${res['ID BDL']} = ${c}x`; }
   setTimeout(()=>{alert('✅ Tersimpan! '+TYPE+' - '+qr+'\nJam: '+wib.full_client);location.href='index.html';},800);
 }
-     // === AUTO HAPUS RIWAYAT 7 HARI ===
+  // === AUTO HAPUS RIWAYAT 7 HARI - V4 FIX ===
 function autoHapusRiwayatHP_Mingguan(){
-  let last = localStorage.getItem('lastHapus');
-  let now = Date.now();
-  // 7 hari = 604800000
-  if(!last || (now - last) > 604800000){
-    localStorage.removeItem('riwayatScan');
-    localStorage.setItem('lastHapus', now);
-    console.log('Riwayat HP dihapus otomatis mingguan');
+  try{
+    let last = localStorage.getItem('lastHapus');
+    let now = Date.now();
+    const TUJUH_HARI = 7 * 24 * 60 * 60 * 1000; // 604800000
+
+    // Cek seminggu sekali tok
+    if(last && (now - parseInt(last)) < TUJUH_HARI) return;
+
+    let all = JSON.parse(localStorage.getItem('riwayat') || '[]');
+    if(all.length === 0) return;
+
+    // Hapus data sing luwih seko 7 hari, ojo hapus kabeh
+    let batas = now - TUJUH_HARI;
+    let sisa = all.filter(d => {
+      try{
+        let tgl = d.WIB ? new Date(d.WIB).getTime() : 0;
+        return tgl > batas; // Simpen sing isih anget 7 hari
+      }catch(e){ return true; } // Nek tanggal e error, ojo di hapus
+    });
+
+    // Nek ono sing kehapus, baru simpen
+    if(sisa.length !== all.length){
+      localStorage.setItem('riwayat', JSON.stringify(sisa));
+      console.log(`Riwayat dibersihkan: ${all.length - sisa.length} data lawas dihapus`);
+    }
+    
+    localStorage.setItem('lastHapus', now.toString());
+  }catch(e){
+    console.log('Gagal auto hapus:', e);
   }
 }
+
 function renderRiwayat(){
   try{
-    let data = JSON.parse(localStorage.getItem('riwayat')||'[]');
+    let data = JSON.parse(localStorage.getItem('riwayat') || '[]');
     let box = document.getElementById('listRiwayat');
     let riwayatBox = document.getElementById('riwayatBox');
     if(!box) return;
-    if(data.length==0){
-      box.innerHTML='<div style="color:#888">Kosong</div>';
-      if(riwayatBox) riwayatBox.style.display='none';
+
+    if(data.length == 0){
+      box.innerHTML = '<div style="color:#888;padding:8px">Kosong</div>';
+      if(riwayatBox) riwayatBox.style.display = 'none';
       return;
     }
-    if(riwayatBox) riwayatBox.style.display='block';
-    box.innerHTML = data.slice(-20).reverse().map(d=>`<div style="border-bottom:1px solid #ddd;padding:4px 0;color:#000">${d.QR_BAK||''} - ${d.BAGIAN||''} - ${d.waktu||''}</div>`).join('');
+    if(riwayatBox) riwayatBox.style.display = 'block';
+    
+    // Fix: pakai WIB / waktu / QR_BAK sing konsisten
+    box.innerHTML = data.slice(-20).reverse().map(d => {
+      let qr = d.QR_BAK || d.qr_bak || '-';
+      let bag = d.BAGIAN || d.bagian || '';
+      let jam = d.waktu || d.WIB || '';
+      // Format jam ben pendek
+      try{ jam = new Date(jam).toLocaleTimeString('id-ID'); }catch(e){}
+      return `<div style="border-bottom:1px solid #eee;padding:6px 0;color:#000;font-size:13px">${qr} - ${bag} - ${jam}</div>`;
+    }).join('');
   }catch(e){}
 }
 
+// JALANKAN URUT
 autoHapusRiwayatHP_Mingguan();
 renderRiwayat();
-renderSteps();startCam();
+renderSteps();
+startCam();
 </script></body></html><script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="7b242c25-0d42-4a6a-bcde-ca4af98bdb84" data-app-host="app.netlify.com" data-account-tier="free"></script>
