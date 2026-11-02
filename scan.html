@@ -2,354 +2,170 @@
 <html>
 <head>
 <meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=7b242c25-0d42-4a6a-bcde-ca4af98bdb84
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>PT URIP SUGIARTO</title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PT URIP SUGIARTO - FIXED</title>
+<script src="html5-qrcode.min.js"></script>
 <style>
-body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12px;display:flex;flex-direction:column;align-items:center;min-height:100vh;box-sizing:border-box;overflow-x:hidden}
-.header{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#1a1a1a,#000);border:2px solid #c9a84c;border-radius:12px;padding:10px;width:100%;max-width:500px;box-sizing:border-box}
+body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12px}
+.header{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#1a1a1a,#000);border:2px solid #c9a84c;border-radius:12px;padding:10px}
 .pt{background:#b91c1c;border:2px solid gold;border-radius:10px;padding:8px 12px;color:white;font-weight:900;flex:1;text-align:center}
-.box{background:#111;border:2px solid #c9a84c;border-radius:12px;padding:12px;margin-top:12px;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;box-sizing:border-box}
+.box{background:#111;border:2px solid #c9a84c;border-radius:12px;padding:12px;margin-top:12px}
 .step{display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:4px;border:1px solid #444}
 .active{background:gold;color:black}.done{background:#0f0;color:black}.wait{background:#222;color:#888}
-#reader{width:280px !important;height:280px;margin:12px auto;position:relative;display:block;background:#000;border-radius:12px;border:2px solid #c9a84c;overflow:hidden}
-#reader video{width:100%;height:100%;object-fit:cover}
-#scan-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border:4px solid #ffeb00;box-shadow:0 0 0 1000px rgba(0,0,0,0.5);z-index:2;pointer-events:none}
-#scan-guide::before{content:'ARAHKAN QR KESINI';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#ffeb00;color:#000;font-weight:900;padding:2px 10px;white-space:nowrap;font-size:11px}
-.btn{width:100%;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px;box-sizing:border-box}
-input{width:100%;max-width:400px;padding:12px;background:#222;border:1px solid #444;color:white;border-radius:8px;box-sizing:border-box;margin-top:8px}
+#reader{width:100%;min-height:65vh;border-radius:12px;overflow:hidden;background:#000;margin-top:12px;position:relative}
+#reader video{width:100%!important;object-fit:cover!important}
+#scan-guide{border:4px solid #ffeb00;box-shadow:0 0 0 4000px rgba(0,0,0,0.45);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:320px;height:320px;max-width:85vw;max-height:85vw;border-radius:12px;z-index:5;pointer-events:none}
+#scan-guide::before{content:'ARAHKAN QR KESINI';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#ffeb00;color:#000;font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px}
+.btn{width:100%;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:16px;margin-top:10px}
+input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;border-radius:8px;box-sizing:border-box;margin-top:8px}
 #resultBox,#verify8Box{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;padding:20px;box-sizing:border-box;overflow:auto}
 .card{background:#1a1a1a;border:3px solid gold;border-radius:16px;padding:20px;text-align:center;margin-top:10%}
-#list-preview{background:#000;border:1.5px solid #0f0;border-radius:8px;padding:8px;margin-top:8px;max-height:180px;overflow:auto;text-align:left;font-size:13px;color:#0f0;width:100%;box-sizing:border-box}
+#list-preview{background:#000;border:1.5px solid #0f0;border-radius:8px;padding:8px;margin-top:8px;max-height:180px;overflow:auto;text-align:left;font-size:13px;color:#0f0}
+html,body{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
 </style>
 </head><body>
-  <div class="header"><div style="width:50px;height:50px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center"><img src="logo.png" style="width:100%;height:100%;border-radius:50%"></div><div class="pt">PT. URIP SUGIARTO </div></div>
+<div class="header"><div style="width:50px;height:50px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center"><img src="logo.png" style="width:100%;height:100%;border-radius:50%"></div><div class="pt">PT. URIP SUGIARTO</div></div>
 <div class="box">
-<div style="font-weight:900;color:#ffdf8a;text-align:center;width:100%" id="tipe">SCAN</div>
-<div id="steps" style="margin-top:8px;text-align:center;width:100%"></div>
-<div id="step-info" style="text-align:center;margin-top:8px;font-weight:900;color:gold;width:100%">Siap Scan</div>
-
-<div style="text-align:center;padding:12px 0;">
-  <button id="btnBukaKamera" onclick="startCam()" style="padding:16px 24px;border-radius:14px;background:#00C853;color:#fff;border:none;font-weight:900;font-size:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3);width:90%;">📷 TAP UNTUK BUKA KAMERA</button>
-  <div id="status" style="margin-top:8px;font-size:13px;color:white;font-weight:bold;"></div>
-</div>
-<div id="reader" style="width:100%;"></div>
-<div id="list-preview"><div style="color:#888">Belum ada QR BAK - Scan 8x</div></div>
+<div style="font-weight:900;color:#ffdf8a" id="tipe">SCAN</div>
+<div id="steps" style="margin-top:8px"></div>
+<div id="step-info" style="text-align:center;margin-top:8px;font-weight:900;color:gold">Siap Scan [0/8]</div>
+<div id="reader"><div id="scan-guide"></div></div>
+<div id="list-preview"><div style="color:#888">Belum ada QR BAK - Scan 8x </div></div>
 <button onclick="paksaFokus()" class="btn" style="background:#2563eb;color:white">🔍 TAP JIKA BLUR</button>
-<div style="display:flex;gap:6px;width:100%"><button onclick="setZoom(1)" class="btn" style="background:#333;color:white;flex:1">1x</button><button onclick="setZoom(2.5)" class="btn" style="background:gold;color:black;flex:1">2.5x</button><button onclick="toggleTorch()" class="btn" style="background:#333;color:white;flex:1">🔦</button><button onclick="gantiKamera()" class="btn" style="background:#0d2a54;color:white;flex:1;border:2px solid #2a5aa8">🔄</button></div>
-<input id="manual" placeholder="Ketik manual jika QR rusak"><button onclick="inputManual()" class="btn" style="background:#333;color:white">INPUT MANUAL</button>
-<div id="bdlCounter" style="display:none;text-align:center;margin-top:8px;background:#ffeb00;color:#000;font-weight:900;padding:8px;border-radius:8px;width:100%"></div>
-<button onclick="resetScan()" class="btn" style="background:#222;color:white">🔄 ULANG SEMUA</button>
-<button onclick="location.href='index.html'" class="btn" style="background:#b91c1c;color:white;border:2px solid gold">⬅ KEMBALI</button>
+<div style="display:flex;gap:6px">
+<button onclick="setZoom(1)" class="btn" style="background:#333;color:white;flex:1">1x</button>
+<button onclick="setZoom(2.5)" class="btn" style="background:gold;color:black;flex:1">2.5x</button>
+<button onclick="toggleTorch()" class="btn" style="background:#333;color:white;flex:1">🔦</button>
+<button onclick="gantiKamera()" class="btn" style="background:#0d2a54;color:white;flex:1;border:2px solid #2a5aa8">🔄</button>
 </div>
+<input id="manual" placeholder="Ketik manual jika QR rusak">
+<button onclick="inputManual()" class="btn" style="background:#333;color:white">INPUT MANUAL</button>
+<div id="status" style="text-align:center;margin-top:10px;color:#0f0;font-weight:900"></div>
+<div id="bdlCounter" style="display:none;text-align:center;margin-top:8px;background:#ffeb00;color:#000;font-weight:900;padding:8px;border-radius:8px"></div>
+<button onclick="resetScan()" class="btn" style="background:#222;color:white">🔄 ULANG SEMUA</button>
+</div>
+<button onclick="location.href='index.html'" class="btn" style="background:#b91c1c;color:white;border:2px solid gold">⬅ KEMBALI KE HALAMAN 1</button>
+
 <div id="resultBox"><div class="card"><div id="resStep" style="color:gold;font-weight:900;font-size:14px"></div><h2 style="color:white;margin:8px 0">Hasil Scan:</h2><h1 id="resValue" style="color:#0f0;word-break:break-all;font-size:22px;background:#000;padding:14px;border-radius:8px;border:1px solid #444"></h1><div id="extraInfo" style="color:#ffeb00;margin-top:10px;font-weight:700"></div><div style="display:flex;gap:10px;margin-top:18px"><button onclick="confirmScan()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI</button><button onclick="ulangCurrent()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG</button></div></div></div>
-<div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
+
+<div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div style="color:white;font-size:12px;margin:6px 0">Cek dulu , 8 QR ini sudah SESUAI 1 BALL?</div><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
+
 <script>
-const GOOGLE_URL="https://script.google.com/macros/s/AKfycbyh3iNQV_kjmj5Xougv71g7gxf9K16OMxdhsVVhifOXcR5PRKSP670k3Bq--Oz05UF7Sw/exec";
+// FIX HALAMAN 1 : kalo dibuka langsung tanpa pilih menu, balik ke index.html
+if(!localStorage.getItem('scan_type')){
+  // cek kalo file index.html ada, langsung balik biar halaman 1 muncul
+  if(location.pathname.indexOf('scan')>-1){
+    document.getElementById('status').innerText='⚠️ Pilih menu di halaman 1 dulu...';
+    setTimeout(()=>{ location.href='index.html'; }, 800);
+  }
+}
 const TYPE=(localStorage.getItem('scan_type')||'BALL').toUpperCase();
 document.getElementById('tipe').innerText='SCAN: '+TYPE;
 const FLOWS={'GL':['QR CODE BAK','ID PC','ID GL 1','ID GL 2'],'KMS':['QR CODE BAK','ID KMS'],'PACK':['QR CODE BAK','ID PACK'],'BDL':['QR CODE BAK','ID BDL'],'BALL':['QR CODE BAK','ID BALL','NO BOX']};
-let flow=FLOWS[TYPE]||FLOWS['BALL']; let cur=0; let res={}; let listBak=[]; let html5QrcodeScanner; let lastScanTime=0; let isPause=false; let tempScan=""; let torchOn=false; let currentCam=0; let cams=[];
-function autoHapusRiwayatHP_Mingguan(){try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');if(!all.length)return;let now=new Date();let batas=new Date();batas.setDate(now.getDate()-7);let awal=all.length;let sisa=all.filter(d=>{try{let tglStr=d.waktu||d.TGL_JAM_CLIENT||d.TANGGAL||d.TGL_CLIENT||"";let tgl=new Date(tglStr);if(isNaN(tgl.getTime())){let p=tglStr.split(/[\s,]+/)[0].split('/');if(p.length==3)tgl=new Date(p[2],p[1]-1,p[0]);else return true;}return tgl>=batas;}catch(e){return true;}});let kehapus=awal-sisa.length;if(kehapus>0){localStorage.setItem('riwayat',JSON.stringify(sisa));localStorage.setItem('riwayat_scan',JSON.stringify(sisa));}localStorage.setItem('last_clean_hp',Date.now());}catch(e){}}
-function renderSteps(){let h='';if(TYPE=='BALL'){if(cur==0)h+=`<span class="step active">▶ QR BAK [${listBak.length}/8]</span>`;else h+=`<span class="step done">✓ QR BAK [8/8]</span>`;flow.slice(1).forEach((s,i)=>{let stepIdx=i+1;let cls=stepIdx<cur?'done':stepIdx==cur?'active':'wait';h+=`<span class="step ${cls}">${stepIdx<cur?'✓ ':stepIdx==cur?'▶ ':''}${s}</span>`;});document.getElementById('step-info').innerText=cur==0?`Siap Scan [${listBak.length}/8]`:flow[cur];document.getElementById('list-preview').style.display='block';}else{flow.forEach((s,i)=>{let cls=i<cur?'done':i==cur?'active':'wait';h+=`<span class="step ${cls}">${i<cur?'✓ ':i==cur?'▶ ':''}${s}</span>`;});document.getElementById('step-info').innerText=flow[cur]||'Siap Scan';document.getElementById('list-preview').style.display='none';}document.getElementById('steps').innerHTML=h;}
-function getWIBDateTime(tglLama) {
-  // Kalau ada tglLama (dari riwayat offline tgl 31), pakai itu!
-  // Kalau gak ada, baru pakai now (jam sekarang)
-  const now = tglLama ? new Date(tglLama) : new Date();
-  
-  // Kalau tglLama string format ID "31/10/2026 15:30:00" ubah dulu jadi Date
-  if (tglLama && typeof tglLama === 'string' && tglLama.includes('/')) {
-    try {
-      let parts = tglLama.split(' ');
-      if (parts.length == 2) {
-        let tp = parts[0].split('/');
-        let jp = parts[1].split(':');
-        const fixed = new Date(tp[2], tp[1]-1, tp[0], jp[0], jp[1], jp[2]||0);
-        if (!isNaN(fixed.getTime())) return getWIBDateTime(fixed);
-      }
-    } catch(e) {}
-  }
+let flow=FLOWS[TYPE]||FLOWS['BALL']; let cur=0; let res={}; let listBak=[]; let html5QrcodeScanner; let lastScanTime=0; let isPause=false; let tempScan=""; let torchOn=false;
 
-  return {
-    tgl_client: now.toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}),
-    tgl_client_id: now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}),
-    jam_client: now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false}),
-    full_client: now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'})+' '+now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false}),
-    raw: now
-  };
+function renderSteps(){
+ let h='';
+ if(TYPE=='BALL'){
+   if(cur==0) h+=`<span class="step active">▶ QR BAK [${listBak.length}/8]</span>`;
+   else h+=`<span class="step done">✓ QR BAK [8/8]</span>`;
+   flow.slice(1).forEach((s,i)=>{let stepIdx=i+1;let cls=stepIdx<cur?'done':stepIdx==cur?'active':'wait';h+=`<span class="step ${cls}">${stepIdx<cur?'✓ ':stepIdx==cur?'▶ ':''}${s}</span>`;});
+ } else { flow.forEach((s,i)=>{let cls=i<cur?'done':i==cur?'active':'wait';h+=`<span class="step ${cls}">${i<cur?'✓ ':i==cur?'▶ ':''}${s}</span>`;}); }
+ document.getElementById('steps').innerHTML=h;
 }
-async function KIRIM_RIWAYAT_PAGI(){
-  let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
-  let toSend=all.filter(d=>d.status=='Lokal');
-  if(!toSend.length){alert("Gak ada data nyangkut");return;}
-  if(!confirm("Kirim "+toSend.length+" data? Sesuai jam aslinya!"))return;
-  document.getElementById('kirimProgress').innerText="⏳ Mengirim 0/"+toSend.length+"...";
-  let sukses=0;
-  
-  for(let i=0;i<all.length;i++){
-    if(all[i].status!='Lokal') continue;
-    let d=all[i];
-    
-    // BULAN ASLI PAS SCAN, BUKAN BULAN SEKARANG!
-    let tglClient = d.TGL_CLIENT || '';
-    if(!tglClient && d.TANGGAL){
-      // parse dari "31/10/2026 ..." jadi "2026-10-31"
-      try{
-        let p = d.TANGGAL.split(' ')[0].split('/');
-        tglClient = p[2]+"-"+p[1].padStart(2,'0')+"-"+p[0].padStart(2,'0');
-      }catch(e){ tglClient = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}); }
-    }
-    let bulanAsli = tglClient.slice(0,7); // YYYY-MM asli tgl 31
-    let targetSheet = "DATA_BAK_" + bulanAsli;
-
-    // LIST_BAK kalau ada koma (BALL 8 biji)
-    let listBakArr = [];
-    if(d.QR_BAK && d.QR_BAK.includes(',')){
-      listBakArr = d.QR_BAK.split(',').map(s=>s.trim()).filter(s=>s);
-    } else if(d.QR_BAK){
-      listBakArr = [d.QR_BAK];
-    }
-
-    let payload={
-      QR_BAK: d.QR_BAK,
-      LIST_BAK: listBakArr,
-      ID_PC: d.ID_PC||'',
-      ID_GL: d.ID_GL||'',
-      ID_GL2: d.ID_GL2||'',
-      ID_KMS: d.ID_KMS||'',
-      ID_PACK: d.ID_PACK||'',
-      ID_BDL: d.ID_BDL||'',
-      ID_BALL: d.ID_BALL||'',
-      NO_BOX: d.NO_BOX||'',
-      BAGIAN: d.BAGIAN||TYPE,
-      TYPE: listBakArr.length > 1 ? 'BALL_8' : (d.ID_BALL?'BALL':(d.BAGIAN||TYPE)),
-      // INI KUNCINYA - PAKAI JAM LAMA TGL 31!
-      JAM_HP: d.TANGGAL || d.waktu || d.TGL_JAM_CLIENT,
-      TGL_JAM_CLIENT: d.waktu || d.TGL_JAM_CLIENT || d.TANGGAL,
-      TGL_CLIENT: tglClient,
-      JAM_CLIENT: d.JAM_CLIENT,
-      TGL_KMS: d.TANGGAL,
-      TARGET_SHEET: targetSheet
-    };
-
-    try{
-      await fetch(GOOGLE_URL,{
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify(payload),
-        mode:'no-cors'
-      });
-      sukses++;
-      all[i].status='Terkirim Ulang Pagi - '+bulanAsli;
-      document.getElementById('kirimProgress').innerText=`⏳ Mengirim ${sukses}/${toSend.length} ke ${targetSheet}...`;
-      await new Promise(r=>setTimeout(r,500));
-    }catch(e){}
-  }
-  
-  localStorage.setItem('riwayat',JSON.stringify(all));
-  localStorage.setItem('riwayat_scan',JSON.stringify(all));
-  document.getElementById('kirimProgress').innerText=`✅ BERES! ${sukses} DATA MASUK SESUAI BULAN ASLI!`;
-  alert(`BERES! ${sukses} data udah masuk sesuai jam aslinya! Cek sheet DATA_BAK_2026-10 ya!`);
-  cekOffline();
+function getWIBDateTime(){
+  const now=new Date();
+  const tgl_client=now.toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
+  const tgl_client_id=now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});
+  const jam_client=now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false});
+  const full_client=tgl_client_id+' '+jam_client;
+  return{tgl_client,tgl_client_id,jam_client,full_client,raw:now};
 }
-function hitungBDL(idBdl){if(!idBdl)return 0;try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let todayID=new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});let todayEN=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});return all.filter(d=>{let waktu=(d.waktu||'')+' '+(d.TGL_CLIENT||'')+' '+(d.TANGGAL||'');let isHariIni=waktu.includes(todayID)||waktu.includes(todayEN);return isHariIni&&(d.ID_BDL||'').toUpperCase()==idBdl.toUpperCase();}).length;}catch(e){return 0;}}
-function validatePager(value,step){step=step.toUpperCase();value=value.trim();if(step.includes('QR CODE BAK')||step.includes('QR BAK')){if(!/^[A-Z0-9]+-[0-9]+$/i.test(value))return "BUKAN QR BAK! Harusnya BAK-001";}if(step.includes('ID PC')||step.includes('ID GL')||step.includes('ID KMS')||step.includes('ID PACK')||step.includes('ID BDL')){if(!/^\d{5,6}$/.test(value))return "BUKAN ID 5 ATAU 6 ANGKA! Harusnya 5 ATAU 6 ANGKA";}return "";}
-function onScanSuccess(decoded){
-  if(isPause) return;
-  const now=Date.now();
-  if(now-lastScanTime<800) return;
-  lastScanTime=now;
-  decoded=decoded.trim().toUpperCase();
-
-  // Sembunyiin tombol TAP biar gak nutupin pas udah nyala
-  let btnBuka = document.getElementById('btnBukaKamera');
-  if(btnBuka) btnBuka.style.display='none';
-
-  let stepSekarang="";
-  if(TYPE=='BALL' && cur==0) stepSekarang="QR CODE BAK";
-  else stepSekarang=flow[cur]||"";
-  
-  let cekSalah=validatePager(decoded,stepSekarang);
-  if(cekSalah){
-    let guide=document.getElementById('scan-guide');
-    if(guide){
-      guide.style.borderColor="#ff0000";
-      guide.style.boxShadow="0 0 0 4000px rgba(255,0,0,0.6)";
-    }
-    document.getElementById('status').innerHTML=`<div style="background:#ff0000;color:white;padding:15px;border-radius:12px;border:3px solid yellow;text-align:center"><div style="font-size:20px;font-weight:900">⛔ SALAH! ${cekSalah}<br><small style="font-size:14px">${decoded}</small></div><button onclick="resetError()" style="margin-top:10px;width:100%;padding:12px;background:white;color:red;font-weight:900;border-radius:8px;border:none">🔄 OKE, SCAN LAGI</button></div>`;
-    if(navigator.vibrate) navigator.vibrate([300,100,300,100,500]);
-    setTimeout(()=>{resetError();},3500);
-    return;
-  }
-
-  if(TYPE=='BALL' && cur==0){
-    if(listBak.includes(decoded)){
-      document.getElementById('status').innerText='⚠️ QR udah ada!';
-      setTimeout(()=>{ isPause=false; try{html5QrcodeScanner.resume();}catch(e){} }, 800);
-      return;
-    }
-    listBak.push(decoded);
-    document.getElementById('list-preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');
-    renderSteps();
-    document.getElementById('status').innerText=`✅ Masuk ${listBak.length}/8`;
-    if(listBak.length<8) return;
-    document.getElementById('list8Preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');
-    document.getElementById('verify8Box').style.display='block';
-    isPause=true;
-    try{html5QrcodeScanner.pause(true);}catch(e){}
-    return;
-  }
-
-  isPause=true;
-  tempScan=decoded;
-  try{html5QrcodeScanner.pause(true);}catch(e){}
-  document.getElementById('resStep').innerText=flow[cur];
-  document.getElementById('resValue').innerText=decoded;
-  document.getElementById('extraInfo').innerText='';
-  if(TYPE=='BDL' && flow[cur]=='ID BDL'){
-    let c=hitungBDL(decoded)+1;
-    document.getElementById('extraInfo').innerText=`🔢 ID BDL ini sudah scan ${c}x`;
-    let counter = document.getElementById('bdlCounter');
-    if(counter){
-      counter.style.display='block';
-      counter.innerText=`🔢 BDL ${decoded} = ${c}x scan hari ini`;
-    }
-  }
-  document.getElementById('resultBox').style.display='block';
-}
-function resetError(){let guide=document.getElementById('scan-guide');if(guide){guide.style.borderColor="#ffeb00";guide.style.boxShadow="0 0 0 1000px rgba(0,0,0,0.5)";}document.getElementById('status').innerHTML="Siap Scan Ulang Yang Benar...";try{html5QrcodeScanner.resume();}catch(e){}isPause=false;lastScanTime=0;}
-function confirm8(){document.getElementById('verify8Box').style.display='none';cur=1;renderSteps();document.getElementById('status').innerText='8 BAK OK! Scan ID BALL';isPause=false;try{html5QrcodeScanner.resume();}catch(e){}lastScanTime=Date.now();}
-function ulang8(){document.getElementById('verify8Box').style.display='none';listBak=[];document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya </div>';renderSteps();document.getElementById('status').innerText='🔄 Ulang 8 QR ya';isPause=false;try{html5QrcodeScanner.resume();}catch(e){}}
-function confirmScan(){document.getElementById('resultBox').style.display='none';if(TYPE=='BALL'&&cur==0){}else{if(cur==0)res.QR_BAK=tempScan;else if(flow[cur].includes('BALL'))res.ID_BALL=tempScan;else if(flow[cur].includes('BOX'))res.NO_BOX=tempScan;else if(flow[cur].includes('PC'))res.ID_PC=tempScan;else if(flow[cur].includes('GL 1'))res.ID_GL=tempScan;else if(flow[cur].includes('GL 2'))res.ID_GL2=tempScan;else if(flow[cur].includes('KMS'))res.ID_KMS=tempScan;else if(flow[cur].includes('PACK'))res.ID_PACK=tempScan;else if(flow[cur].includes('BDL'))res.ID_BDL=tempScan;}if(TYPE=='BALL'&&cur==0){cur=1;}else{cur++;}if(cur>=flow.length){kirimData();}else{renderSteps();isPause=false;try{html5QrcodeScanner.resume();}catch(e){}lastScanTime=Date.now();document.getElementById('status').innerText='Scan '+flow[cur];}}
-function ulangCurrent(){document.getElementById('resultBox').style.display='none';isPause=false;try{html5QrcodeScanner.resume();}catch(e){}lastScanTime=Date.now();}
-function inputManual(){let v=document.getElementById('manual').value.trim().toUpperCase();if(!v){alert("Isi dulu");return;}document.getElementById('manual').value='';onScanSuccess(v);}
-document.getElementById('manual').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();inputManual();}});
-function resetScan(){cur=0;res={};listBak=[];tempScan='';document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x</div>';document.getElementById('bdlCounter').style.display='none';renderSteps();document.getElementById('status').innerText='🔄 Ulang Semua';isPause=false;try{html5QrcodeScanner.resume();}catch(e){}}
-function paksaFokus(){try{html5QrcodeScanner.resume();}catch(e){}document.getElementById('status').innerText='🔍 Fokus...';}
-function setZoom(z){try{html5QrcodeScanner.applyVideoConstraints({advanced:[{zoom:z}]});}catch(e){}}
-function toggleTorch(){torchOn=!torchOn;try{html5QrcodeScanner.applyVideoConstraints({advanced:[{torch:torchOn}]});}catch(e){}}
-async function gantiKamera(){
-  if(cams.length==0){ 
-    try{ cams = await Html5Qrcode.getCameras(); }catch(e){} 
-  }
-  if(cams.length>1){
-    currentCam = (currentCam+1) % cams.length;
-    try{ 
-      if(html5QrcodeScanner && html5QrcodeScanner.isScanning) 
-        await html5QrcodeScanner.stop(); 
-    }catch(e){}
-    setTimeout(()=>{ startCam(cams[currentCam].id); }, 300);
-  } else {
-    document.getElementById('status').innerText='Hanya 1 kamera';
-  }
-}
-  async function kirimData(){
-  const wib = getWIBDateTime();
-  // TARGET_SHEET ngikut jam scan, bukan jam sync!
-  let bulanScan = wib.tgl_client.slice(0,7); // ambil YYYY-MM dari tgl scan
-  let targetSheet = "DATA_BAK_" + bulanScan;
-  
-  let payload = {};
-  if(TYPE=='BALL'){
-    // JANGAN DI JOIN PAKAI KOMA, PAKAI ARRAY!
-    payload={
-      TYPE: listBak.length > 1 ? 'BALL_8' : 'BALL',
-      LIST_BAK: listBak, // <-- ARRAY, bukan join(',')
-      QR_BAK: listBak[0] || '', // backup
-      ID_BALL: res.ID_BALL||'',
-      NO_BOX: res.NO_BOX||'',
-      BAGIAN: TYPE,
-      JAM_HP: wib.full_client, // <-- WAJIB ADA INI
-      TGL_JAM_CLIENT: wib.full_client,
-      TGL_CLIENT: wib.tgl_client,
-      JAM_CLIENT: wib.jam_client,
-      TARGET_SHEET: targetSheet // <-- WAJIB BIAR MASUK OKTOBER
-    };
-  }else{
-    payload={
-      QR_BAK: res.QR_BAK||'',
-      ID_PC: res.ID_PC||'',
-      ID_GL: res.ID_GL||'',
-      ID_GL2: res.ID_GL2||'',
-      ID_KMS: res.ID_KMS||'',
-      ID_PACK: res.ID_PACK||'',
-      ID_BDL: res.ID_BDL||'',
-      ID_BALL: res.ID_BALL||'',
-      NO_BOX: res.NO_BOX||'',
-      BAGIAN: TYPE,
-      JAM_HP: wib.full_client,
-      TGL_JAM_CLIENT: wib.full_client,
-      TGL_CLIENT: wib.tgl_client,
-      JAM_CLIENT: wib.jam_client,
-      TGL_KMS: wib.full_client,
-      TYPE: TYPE,
-      TARGET_SHEET: targetSheet
-    };
-  }
-
-  // simpen riwayat pakai jam asli scan
+function hitungBDL(idBdl){
+  if(!idBdl) return 0;
   try{
     let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
-    all.push({...payload, TANGGAL:wib.full_client, waktu:wib.full_client, status:'Lokal'});
-    localStorage.setItem('riwayat',JSON.stringify(all));
-    localStorage.setItem('riwayat_scan',JSON.stringify(all));
-  }catch(e){}
-
-  document.getElementById('status').innerText='⏳ Kirim...';
-  try{
-    await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),mode:'no-cors'});
-    document.getElementById('status').innerText='✅ Terkirim ke ' + targetSheet;
-  }catch(e){
-    document.getElementById('status').innerText='📱 Disimpen Lokal ('+bulanScan+')';
-  }
-  setTimeout(()=>{resetScan();},1200);
+    return all.filter(d=> (d.ID_BDL||'').toUpperCase()==idBdl.toUpperCase()).length;
+  }catch(e){return 0;}
 }
- async function startCam(camId){
-  if(html5QrcodeScanner){
-    try{
-      if(html5QrcodeScanner.isScanning) await html5QrcodeScanner.stop();
-      html5QrcodeScanner.clear();
-    }catch(e){}
-  } else {
-    html5QrcodeScanner = new Html5Qrcode("reader", {verbose:false});
-  }
-
-  let config = { fps: , qrbox: { width: 250, height: 250 }, videoConstraints: { width: { min: 640, ideal: 1280 }, height: { min: 480, ideal: 720 } } };
-  document.getElementById('status').innerText = '⏳ Buka kamera...';
-
-  const tryStart = async (camConf) => {
-    try{
-      await html5QrcodeScanner.start(camConf, config, onScanSuccess, ()=>{});
-      document.getElementById('status').innerText = '✅ Kamera nyala - ' + TYPE;
-      
-      // FIX iPhone: video harus playsinline
-      setTimeout(()=>{
-        const v = document.querySelector('#reader video');
-        if(v){ v.setAttribute('playsinline',''); v.setAttribute('muted',''); v.style.objectFit='cover'; }
-      }, 500);
-      return true;
-    }catch(e){ console.log('fail', e); return false; }
-  };
-
-  // IPHONE FIX: Coba belakang dulu
-  if(camId){
-    if(await tryStart({ deviceId: { exact: camId } })) return;
-  }
-  if(await tryStart({ facingMode: { exact: "environment" } })) return;
-  if(await tryStart({ facingMode: "environment" })) return;
-  
-  // Fallback list
-  try{
-    cams = await Html5Qrcode.getCameras();
-    if(cams && cams.length){
-      let back = cams.find(c=>c.label.toLowerCase().includes('back')) || cams[cams.length-1];
-      if(await tryStart({ deviceId: { exact: back.id } })) return;
-      if(await tryStart({ deviceId: { exact: cams[0].id } })) return;
-    }
-  }catch(e){}
-
-  document.getElementById('status').innerHTML = '❌ Gagal. iPhone: Buka di Safari, klik <b>Izinkan</b> kamera di atas address bar.<br>Android: Pakai Chrome & HTTPS';
+function onScanSuccess(decoded){
+ if(isPause) return;
+ const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
+ decoded = decoded.trim().toUpperCase();
+ if(TYPE=='BALL' && cur==0){
+   if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!'; if(navigator.vibrate) navigator.vibrate([100,50,100]); return;}
+   listBak.push(decoded);
+   document.getElementById('step-info').innerText = 'Siap Scan [0/8]';
+   document.getElementById('list-preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');
+   renderSteps(); if(navigator.vibrate) navigator.vibrate([80]);
+   document.getElementById('status').innerText=`✅ Masuk ${listBak.length}/8`;
+   if(listBak.length < 8) return;
+   document.getElementById('list8Preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');
+   document.getElementById('verify8Box').style.display='block';
+   isPause=true; try{html5QrcodeScanner.pause(true);}catch(e){}
+   return;
+ }
+ isPause=true; tempScan=decoded; try{html5QrcodeScanner.pause(true);}catch(e){}
+ document.getElementById('resStep').innerText=flow[cur];
+ document.getElementById('resValue').innerText=decoded;
+ document.getElementById('extraInfo').innerText='';
+ if(TYPE=='BDL' && flow[cur]=='ID BDL'){
+   let c=hitungBDL(decoded)+1;
+   document.getElementById('extraInfo').innerText=`🔢 ID BDL ini sudah scan ${c}x (termasuk yang ini)`;
+   document.getElementById('bdlCounter').style.display='block';
+   document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x scan hari ini`;
+ }
+ document.getElementById('resultBox').style.display='block'; if(navigator.vibrate) navigator.vibrate([200,100,200]);
 }
- (async()=>{renderSteps();let lastClean=parseInt(localStorage.getItem('last_clean_hp')||0);let seminggu=7*24*60*60*1000;if(Date.now()-lastClean>seminggu){autoHapusRiwayatHP_Mingguan();}startCam();})();
-</script>
-</body></html>
+function confirm8(){
+  document.getElementById('verify8Box').style.display='none';
+  cur=1; renderSteps(); document.getElementById('step-info').innerText='Lanjut scan ID BALL'; document.getElementById('status').innerText='8 BAK OK! Scan ID BALL'; if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  isPause=false; try{html5QrcodeScanner.resume();}catch(e){} lastScanTime=Date.now();
+}
+function ulang8(){
+  document.getElementById('verify8Box').style.display='none';
+  listBak=[]; document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya </div>'; document.getElementById('step-info').innerText='Siap Scan [0/8]'; renderSteps(); document.getElementById('status').innerText='🔄 Ulang 8 QR ya';
+  isPause=false; try{html5QrcodeScanner.resume();}catch(e){}
+}
+function confirmScan(){document.getElementById('resultBox').style.display='none';res[flow[cur]]=tempScan;cur++;renderSteps();if(cur>=flow.length){autoSave();}else{isPause=false;try{html5QrcodeScanner.resume();}catch(e){}document.getElementById('step-info').innerText=flow[cur];lastScanTime=Date.now();}}
+function ulangCurrent(){document.getElementById('resultBox').style.display='none';isPause=false;tempScan="";lastScanTime=0;try{html5QrcodeScanner.resume();}catch(e){}}
+function inputManual(){let v=document.getElementById('manual').value.trim().toUpperCase();if(!v) return alert('Isi dulu');onScanSuccess(v);document.getElementById('manual').value='';}
+function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempScan="";document.getElementById('resultBox').style.display='none';document.getElementById('verify8Box').style.display='none';document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';document.getElementById('step-info').innerText = TYPE=='BALL' ? 'Siap Scan [0/8]' : 'Siap Scan';document.getElementById('bdlCounter').style.display='none';renderSteps();try{html5QrcodeScanner.resume();}catch(e){}}
+async function startCam(){
+  html5QrcodeScanner=new Html5Qrcode("reader");
+  const config={fps:15,qrbox:{width:320,height:320},aspectRatio:1.7778,formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE],experimentalFeatures:{useBarCodeDetectorIfSupported:false},videoConstraints:{facingMode:"environment"}};
+  try{await html5QrcodeScanner.start({facingMode:{exact:"environment"}},config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);return;}catch(e1){
+    try{await html5QrcodeScanner.start({facingMode:"environment"},config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);return;}catch(e2){
+      try{let cams=await Html5Qrcode.getCameras();if(!cams.length) throw e2; let back=cams[cams.length-1];let found=cams.find(c=>/back|rear|environment/i.test(c.label));if(found) back=found;await html5QrcodeScanner.start(back.id,config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);}catch(e3){document.getElementById('status').innerText="❌ Kamera diblokir - Aktifkan izin kamera di iPhone Settings > Safari";}}}
+}
+function setZoom(z){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{zoom:Math.min(z,track.getCapabilities().zoom.max)}]});}catch(e){}}
+function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{focusMode:"continuous"}]});}catch{html5QrcodeScanner.stop().then(()=>startCam());}}
+function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]});}}catch(e){}}
+async function gantiKamera(){try{await html5QrcodeScanner.stop();}catch{}startCam();}
+async function autoSave(){
+  if(html5QrcodeScanner){try{await html5QrcodeScanner.stop();}catch(e){}}
+  let bagian=localStorage.getItem('bagian')||TYPE;
+  const wib=getWIBDateTime(); let tgl_input=wib.tgl_client; let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+  const GOOGLE_URL="https://script.google.com/macros/s/AKfycbz-QZefe9rvUl6Q6mXQHZmRgNww_b4PxxfaokevzX1_BchKSBXnGWkRi3I3KZimolrbpA/exec";
+  if(TYPE=='BALL'){
+    listBak.forEach(qr=>{if(!qr) return;let idx=all.findIndex(d=>d.QR_BAK==qr);if(idx==-1){all.push({QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_client_id,JAM_CLIENT:wib.jam_client,waktu:wib.full_client,status:'Lokal'});}else{all[idx].ID_BALL=res['ID BALL']||'';all[idx].NO_BOX=res['NO BOX']||'';all[idx].BAGIAN=bagian;}});
+    localStorage.setItem('riwayat',JSON.stringify(all)); localStorage.setItem('riwayat_scan',JSON.stringify(all));
+    let kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_client_id,JAM_CLIENT:wib.jam_client,TGL_JAM_CLIENT:wib.full_client};
+    document.getElementById('status').innerText="⏳ KIRIM 8 BAK..."; try{await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});document.getElementById('status').innerText="✅ 8 BAK TERKIRIM "+wib.full_client;}catch(e){document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN";}
+    setTimeout(()=>{alert('✅ Tersimpan 8 BAK! BALL: '+res['ID BALL']+'\nJam: '+wib.full_client);location.href='index.html';},800); return;
+  }
+  let qr=res['QR CODE BAK']||''; let idx=all.findIndex(d=>d.QR_BAK==qr&&!d.ID_BALL); if(idx==-1){all.push({QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_client_id,JAM_CLIENT:wib.jam_client,waktu:wib.full_client,status:'Lokal'});}
+  else { if(TYPE=='KMS') all[idx].ID_KMS=res['ID KMS']||''; if(TYPE=='PACK') all[idx].ID_PACK=res['ID PACK']||''; if(TYPE=='BDL'){ all[idx].ID_BDL=res['ID BDL']||''; } }
+  localStorage.setItem('riwayat',JSON.stringify(all)); localStorage.setItem('riwayat_scan',JSON.stringify(all));
+  let kirim={QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_client_id,JAM_CLIENT:wib.jam_client,TGL_JAM_CLIENT:wib.full_client,TYPE:TYPE};
+  document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_client;
+  try{await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_client;}catch(e){document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_client;}
+  if(TYPE=='BDL'){ let c=hitungBDL(res['ID BDL']||''); document.getElementById('bdlCounter').style.display='block'; document.getElementById('bdlCounter').innerText=`🔢 Total scan BDL ${res['ID BDL']} = ${c}x`; }
+  setTimeout(()=>{alert('✅ Tersimpan! '+TYPE+' - '+qr+'\nJam: '+wib.full_client);location.href='index.html';},800);
+}
+renderSteps();startCam();
+</script></body></html><script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="7b242c25-0d42-4a6a-bcde-ca4af98bdb84" data-app-host="app.netlify.com" data-account-tier="free"></script>
