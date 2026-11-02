@@ -171,36 +171,33 @@ async function startCam(){
       try{let cams=await Html5Qrcode.getCameras();if(!cams.length) throw e2; let back=cams[cams.length-1];let found=cams.find(c=>/back|rear|environment/i.test(c.label));if(found) back=found;await html5QrcodeScanner.start(back.id,config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);}catch(e3){document.getElementById('status').innerText="❌ Kamera diblokir - Aktifkan izin kamera di iPhone Settings > Safari";}}}
 }
   function onScanSuccess(decoded){
- if(isPause) return;
  const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
+ if(isPause) return;
 
- // === VALIDASI KERAS ANTI SALAH SCAN ===
- if(TYPE=='BALL' && cur==0){
-   // LAGI SCAN BAK, TOLAK KALO ISINE ID ANGKA
-   if(/^\d+$/.test(decoded)){
-     document.getElementById('status').innerText='❌ SALAH! INI ID ANGKA, BUKAN QR BAK! CARI QR ADA STRIP -';
-     if(navigator.vibrate) navigator.vibrate([100,50,100,50,100]);
-     return;
-   }
-   if(!decoded.includes('-')){
-     document.getElementById('status').innerText='❌ SALAH! QR BAK HARUS ADA -';
-     if(navigator.vibrate) navigator.vibrate([100,50,100]);
-     return;
-   }
- } else {
-   // LAGI SCAN ID, TOLAK KALO ISINE QR BAK
-   let stepName = flow[cur] || '';
-   if(stepName.includes('ID')){
-     if(decoded.includes('-') || /[A-Z]/.test(decoded)){
-       document.getElementById('status').innerText='❌ SALAH! INI QR BAK, BUKAN ID! SCAN ANGKA 5 DIGIT';
-       if(navigator.vibrate) navigator.vibrate([100,50,100,50,100]);
-       return;
-     }
+ let stepSekarang = (TYPE=='BALL' && cur==0) ? 'QR CODE BAK' : (flow[cur] || '');
+ if(stepSekarang.includes('BAK') || stepSekarang.includes('QR CODE BAK')){
+   if(/^\d{5,6}$/.test(decoded) || /^\d+$/.test(decoded)){
+     document.getElementById('status').innerText = `❌ DITOLAK! ${decoded} ITU ID, BUKAN QR BAK!`;
+     document.getElementById('status').style.color = '#ff0000';
+     if(navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+     // PENTING: JANGAN PAUSE, BIAR KAMERA TETEP NYALA
+     try{html5QrcodeScanner.resume();}catch(e){}
+     isPause = false;
+     return; // <-- STOP, JANGAN LANJUT KE resultBox
    }
  }
 
- // === LANJUTAN KODE SAMPEAN (ORI) ===
+ // === KUNCI 2: NEK LAGI SCAN ID, QR BAK LANGSUNG TOLAK ===
+ if(stepSekarang.includes('ID')){
+   if(decoded.includes('-')){
+     document.getElementById('status').innerText = `❌ DITOLAK! BUKAN ID!`;
+     if(navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+     try{html5QrcodeScanner.resume();}catch(e){}
+     isPause = false;
+     return;
+   }
+ }
  if(TYPE=='BALL' && cur==0){
    if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!'; if(navigator.vibrate) navigator.vibrate([100,50,100]); return;}
    listBak.push(decoded);
