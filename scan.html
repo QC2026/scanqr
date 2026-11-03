@@ -304,7 +304,11 @@ async function autoSave(){
   document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_client;
   try{await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_client;}catch(e){document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_client;}
   if(TYPE=='BDL'){ let c=hitungBDL(res['ID BDL']||''); document.getElementById('bdlCounter').style.display='block'; document.getElementById('bdlCounter').innerText=`🔢 Total scan BDL ${res['ID BDL']} = ${c}x`; }
-  setTimeout(()=>{alert('✅ Tersimpan! '+TYPE+' - '+qr+'\nJam: '+wib.full_client);location.href='index.html';},800);
+  setTimeout(async ()=>{
+  try { if(html5Qrcode && html5Qrcode.isScanning) await html5Qrcode.stop(); } catch(e){}
+  alert('✅ Tersimpan! '+TYPE+' - '+qr+'\nJam: '+wib.full_client);
+  location.href='index.html';
+},800);
 // === AUTO HAPUS RIWAYAT 7 HARI - V5 FIX DD/MM/YYYY ===
 function parseWIB(str){
   if(!str) return 0;
