@@ -1,11 +1,12 @@
-const CACHE_NAME = 'qc-scan-v3-final-terang';
+const CACHE_NAME = 'qc-scan-v4-final-terang';
 const urlsToCache = [
   './',
   './index.html',
   './scan.html',
   './riwayat.html',
   './manifest.json',
-  './logo.png'
+  './logo.png',
+  './html5-qrcode.minjs',
 ];
 
 self.addEventListener('install', event => {
