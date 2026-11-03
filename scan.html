@@ -145,10 +145,10 @@ function cegahDoubleScan(value){
     
     // 1. TOLAK angka tok koyo 123456 - KAMERA WEGAH
     if(/^\d+$/.test(value)){
-      return "SALAH! INI ANGKA TOK 123456, BUKAN G1-001 / BAK-1234! KAMERA WEGAH!";
+      return "SALAH! INI BUKAN QR BAK ! KAMERA EMOH!";
     }
     if(/^\d{5,6}$/.test(value)){
-      return "SALAH! INI ID BDL ANGKA TOK, DITOLAK!";
+      return "SALAH! INI NO ID ANGKA TOK, DITOLAK!";
     }
 
     // 2. LOLOS nek format anyar BAK-1234
@@ -222,7 +222,7 @@ function onScanSuccess(decoded){
  const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
 
- // === SATPAM BARU - MODE BAK G1-001 + BAK-1234 ===
+ // === MODE BAK G1-001 + BAK-1234 ===
  // flow[cur] = step e, misal 'BAK', 'QR', 'ID BDL'
  let stepSaiki = (typeof flow !== 'undefined' && flow[cur]) ? flow[cur] : TYPE;
  let cekError = validatePager(decoded, stepSaiki);
@@ -231,7 +231,6 @@ function onScanSuccess(decoded){
    if(navigator.vibrate) navigator.vibrate([100,50,100,100]);
    return; // WEGAH NEMBAK, BALIK SCAN MANEH
  }
- // === END SATPAM ===
 
  if(TYPE=='BALL' && cur==0){
    if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!'; if(navigator.vibrate) navigator.vibrate([100,50,100]); return;}
@@ -282,29 +281,46 @@ async function autoSave(){
   if(TYPE=='BDL'){ let c=hitungBDL(res['ID BDL']||''); document.getElementById('bdlCounter').style.display='block'; document.getElementById('bdlCounter').innerText=`🔢 Total scan BDL ${res['ID BDL']} = ${c}x`; }
   setTimeout(()=>{alert('✅ Tersimpan! '+TYPE+' - '+qr+'\nJam: '+wib.full_client);location.href='index.html';},800);
 }
-  // === AUTO HAPUS RIWAYAT 7 HARI - V4 FIX ===
+// === AUTO HAPUS RIWAYAT 7 HARI - V5 FIX DD/MM/YYYY ===
+function parseWIB(str){
+  if(!str) return 0;
+  try{
+    let s = String(str).trim();
+    // Support format: 07/05/2026 15:00:00 atau 07/05/2026 atau ISO
+    let p = s.split(/[\/\s:]/);
+    if(p.length >= 3){
+      let d = parseInt(p[0]), m = parseInt(p[1])-1, y = parseInt(p[2]);
+      let h = parseInt(p[3]||0), mn = parseInt(p[4]||0), sc = parseInt(p[5]||0);
+      if(!isNaN(d) && !isNaN(m) && !isNaN(y)){
+        return new Date(y,m,d,h,mn,sc).getTime();
+      }
+    }
+    // Fallback nek format ISO (2026-05-07T...)
+    return new Date(s).getTime() || 0;
+  }catch(e){ return 0; }
+}
+
 function autoHapusRiwayatHP_Mingguan(){
   try{
     let last = localStorage.getItem('lastHapus');
     let now = Date.now();
-    const TUJUH_HARI = 7 * 24 * 60 * 60 * 1000; // 604800000
+    const TUJUH_HARI = 7 * 24 * 60 * 60 * 1000;
 
-    // Cek seminggu sekali tok
     if(last && (now - parseInt(last)) < TUJUH_HARI) return;
 
     let all = JSON.parse(localStorage.getItem('riwayat') || '[]');
     if(all.length === 0) return;
 
-    // Hapus data sing luwih seko 7 hari, ojo hapus kabeh
     let batas = now - TUJUH_HARI;
     let sisa = all.filter(d => {
       try{
-        let tgl = d.WIB ? new Date(d.WIB).getTime() : 0;
-        return tgl > batas; // Simpen sing isih anget 7 hari
-      }catch(e){ return true; } // Nek tanggal e error, ojo di hapus
+        let tgl = d.WIB ? parseWIB(d.WIB) : 0;
+        // tgl 0 = data tanpa tanggal, ojo dihapus
+        if(tgl === 0) return true;
+        return tgl > batas;
+      }catch(e){ return true; }
     });
 
-    // Nek ono sing kehapus, baru simpen
     if(sisa.length !== all.length){
       localStorage.setItem('riwayat', JSON.stringify(sisa));
       console.log(`Riwayat dibersihkan: ${all.length - sisa.length} data lawas dihapus`);
@@ -315,7 +331,6 @@ function autoHapusRiwayatHP_Mingguan(){
     console.log('Gagal auto hapus:', e);
   }
 }
-
 function renderRiwayat(){
   try{
     let data = JSON.parse(localStorage.getItem('riwayat') || '[]');
