@@ -279,25 +279,6 @@ function renderRiwayat(){
     }).join('');
   }catch(e){}
 }
-function onSesuai(){
-  if(flow[cur]=='ID BDL'){
-    try{
-      let all = JSON.parse(localStorage.getItem('riwayat') || '[]');
-      all.push({ ID_BDL: tempScan, WIB: new Date().toISOString() });
-      localStorage.setItem('riwayat', JSON.stringify(all));
-    }catch(e){}
-  }
-  document.getElementById('resultBox').style.display='none';
-  isPause = false;
-  cur++;
-  renderSteps();
-}
-
-function onUlang(){
-  document.getElementById('resultBox').style.display='none';
-  isPause = false;
-  tempScan = "";
-}
 // JALANKAN URUT
 autoHapusRiwayatHP_Mingguan();
 renderRiwayat();
