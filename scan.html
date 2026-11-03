@@ -220,12 +220,36 @@ function inputManual(){let v=document.getElementById('manual').value.trim().toUp
 function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempScan="";document.getElementById('resultBox').style.display='none';document.getElementById('verify8Box').style.display='none';document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';document.getElementById('step-info').innerText = TYPE=='BALL' ? 'Siap Scan [0/8]' : 'Siap Scan';document.getElementById('bdlCounter').style.display='none';renderSteps();try{html5QrcodeScanner.resume();}catch(e){}}
 async function startCam(){
   html5QrcodeScanner=new Html5Qrcode("reader");
-  const config={fps:15,qrbox:{width:280,height:280},aspectRatio:1.7778,formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE],experimentalFeatures:{useBarCodeDetectorIfSupported:false},videoConstraints:{facingMode:"environment"}};
-  try{await html5QrcodeScanner.start({facingMode:{exact:"environment"}},config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);return;}catch(e1){
-    try{await html5QrcodeScanner.start({facingMode:"environment"},config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);return;}catch(e2){
-      try{let cams=await Html5Qrcode.getCameras();if(!cams.length) throw e2; let back=cams[cams.length-1];let found=cams.find(c=>/back|rear|environment/i.test(c.label));if(found) back=found;await html5QrcodeScanner.start(back.id,config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);}catch(e3){document.getElementById('status').innerText="❌ Kamera diblokir - Aktifkan izin kamera di iPhone Settings > Safari";}}}
+  // config DIBERSIHIN, videoConstraints HAPUS dari sini
+  const config={
+    fps:30, 
+    qrbox:{width:260,height:260},
+    aspectRatio:1.0,
+    formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE],
+    experimentalFeatures:{useBarCodeDetectorIfSupported:true}
+  };
+
+  try{
+    await html5QrcodeScanner.start({facingMode:"environment"},config,onScanSuccess,()=>{});
+    return;
+  }catch(e1){
+    try{
+      let cams=await Html5Qrcode.getCameras();
+      if(!cams||!cams.length) throw e1;
+      let back=cams[cams.length-1];
+      let found=cams.find(c=>/back|rear|environment/i.test(c.label));
+      if(found) back=found;
+      await html5QrcodeScanner.start(back.id,config,onScanSuccess,()=>{});
+      return;
+    }catch(e3){
+      document.getElementById('status').innerText="❌ Kamera Error: " + e3.message;
+      alert("Error kamera: " + e3.message);
+    }
+  }
 }
-function onScanSuccess(decoded){
+
+// setZoom nya pisah, jangan dipanggil otomatis
+// panggil manual aja kalau butuh via tombolfunction onScanSuccess(decoded){
  if(isPause) return;
  const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
