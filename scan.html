@@ -107,21 +107,20 @@ function cegahDoubleScan(value){
   lastTime = now;
   return "";
 }
-
 function validatePager(value, step){
   if(!value || !step) return "";
   value = value.trim().toUpperCase();
-  step = step.toUpperCase();
+  
+  // Ubah step menjadi kapital dan hapus spasi/strip agar pengecekan lebih akurat
+  step = step.toUpperCase().replace(/[\s_-]/g, ""); 
 
+  // Pastikan fungsi ini ada dan tidak error di kode lain
   let dobel = cegahDoubleScan(value);
   if(dobel) return dobel;
-
-  // === KHUSUS SCAN BAK - WAJIB ADA HURUF & STRIP ===
+// === KHUSUS SCAN BAK - WAJIB ADA HURUF & STRIP ===
+  // (step diubah jadi "BAK" atau "QR")
   if(step.includes('BAK') || step.includes('QR')){
-    // Nek isine cuma angka 5-6 digit, TOLAK LANGSUNG
-    if(/^\d{5,6}$/.test(value)){
-      return "SALAH! INI ID ANGKA, BUKAN QR BAK!";
-    }
+    // Jika isinya HANYA angka (berapapun digitnya), TOLAK LANGSUNG
     if(/^\d+$/.test(value)){
       return "SALAH! INI ID ANGKA, BUKAN QR BAK!";
     }
@@ -130,21 +129,23 @@ function validatePager(value, step){
       return "SALAH! QR BAK HARUS ADA - !";
     }
   }
-
   // === KHUSUS SCAN ID - WAJIB ANGKA ===
-  if(step.includes('ID PC') || step.includes('ID GL') || step.includes('ID KMS') || step.includes('ID PACK') || step.includes('ID BDL') || step.includes('ID BALL')){
+  // (step dicek setelah spasi/strip dihapus, misal: "IDPC", "IDGL", "IDKMS")
+  if(step.includes('IDPC') || step.includes('IDGL') || step.includes('IDKMS') || step.includes('IDPACK') || step.includes('IDBDL') || step.includes('IDBALL')){
+    // Jika ada strip atau ada huruf alfabet, TOLAK
     if(value.includes('-') || /[A-Z]/.test(value)){
       return "SALAH! INI QR BAK, BUKAN ID!";
     }
+    // ID wajib berupa angka dan panjangnya HARUS 5 sampai 6 digit
     if(!/^\d{5,6}$/.test(value)){
       return "SALAH! ID HARUS 5-6 ANGKA!";
     }
   }
-
-  if(navigator.vibrate) navigator.vibrate(80);
-  return "";
+    if(typeof navigator !== "undefined" && navigator.vibrate) {
+    navigator.vibrate(80);
+  }
+   return ""; // Lolos validasi
 }
-  
 function confirm8(){
   document.getElementById('verify8Box').style.display='none';
   cur=1; renderSteps(); document.getElementById('step-info').innerText='Lanjut scan ID BALL'; document.getElementById('status').innerText='8 BAK OK! Scan ID BALL'; if(navigator.vibrate) navigator.vibrate([200,100,200]);
