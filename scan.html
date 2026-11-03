@@ -119,30 +119,49 @@ function cegahDoubleScan(value){
     }
   }catch(e){}
 
-  // === KHUSUS SCAN BAK / QR ===
+  // === MODE BAK FINAL: G1-001 + BAK-1234 ===
+  // Harus gelem nembak G1-001 karo BAK-1234, wegah nek 123456
   if(step.includes('BAK') || step === 'QR' || step.includes('QRBAK')){
-    // ID BDL = 5-6 angka doang -> TOLAK
-    if(/^\d{5,6}$/.test(value)){
-      return "SALAH! INI ID BDL, BUKAN QR BAK!";
-    }
-    // Cuma angka tok -> TOLAK
+    
+    // 1. TOLAK angka tok koyo 123456 - KAMERA WEGAH
     if(/^\d+$/.test(value)){
-      return "SALAH! INI ID ANGKA, BUKAN QR BAK!";
+      return "SALAH! INI ANGKA TOK 123456, BUKAN G1-001 / BAK-1234! KAMERA WEGAH!";
     }
-    // QR BAK wajib ada - (G6-858 ada - jadi LOLOS)
+    if(/^\d{5,6}$/.test(value)){
+      return "SALAH! INI ID BDL ANGKA TOK, DITOLAK!";
+    }
+
+    // 2. LOLOS nek format anyar BAK-1234
+    if(/^BAK-\d+$/.test(value)){
+      return ""; // LOLOS
+    }
+
+    // 3. LOLOS nek format ID G1-001, G11-001, G6-858
+    if(/^G\d+-\d+$/.test(value)){
+      return ""; // LOLOS
+    }
+    
+    // 4. WAJIB ada -
     if(!value.includes('-')){
-      return "SALAH! QR BAK HARUS ADA - !";
+      return "SALAH! HARUS G1-001 ATAU BAK-1234 (HARUS ADA -)!";
     }
-    // Minimal 4 karakter (G6-858 = 6 lolos, G1-1 = 4 lolos)
+
+    // 5. Minimal 4 karakter
     if(value.length < 4){
-      return "SALAH! QR BAK KEPENDEKAN!";
+      return "SALAH! KEPENDEKAN!";
     }
-    return ""; // LOLOS - G6-858 LOLOS DI SINI
+    
+    // Format Gxxx-xxx liyane yo lolos
+    if(/^[A-Z]+\d*-\d+$/.test(value)){
+      return "";
+    }
+
+    return "SALAH! FORMAT HARUS G1-001 ATAU BAK-1234!";
   }
 
-  // === KHUSUS SCAN ID ===
+  // === SCAN ID (tetep) ===
   if(step.includes('IDPC') || step.includes('IDGL') || step.includes('IDKMS') || step.includes('IDPACK') || step.includes('IDBDL') || step.includes('IDBALL')){
-    if(value.includes('-')){
+    if(value.includes('-') || value.includes('BAK')){
       return "SALAH! INI QR BAK, BUKAN ID!";
     }
     if(/[A-Z]/.test(value)){
@@ -182,6 +201,18 @@ function onScanSuccess(decoded){
  if(isPause) return;
  const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
+
+ // === SATPAM BARU - MODE BAK G1-001 + BAK-1234 ===
+ // flow[cur] = step e, misal 'BAK', 'QR', 'ID BDL'
+ let stepSaiki = (typeof flow !== 'undefined' && flow[cur]) ? flow[cur] : TYPE;
+ let cekError = validatePager(decoded, stepSaiki);
+ if(cekError){
+   document.getElementById('status').innerText = '⛔ ' + cekError;
+   if(navigator.vibrate) navigator.vibrate([100,50,100,100]);
+   return; // WEGAH NEMBAK, BALIK SCAN MANEH
+ }
+ // === END SATPAM ===
+
  if(TYPE=='BALL' && cur==0){
    if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!'; if(navigator.vibrate) navigator.vibrate([100,50,100]); return;}
    listBak.push(decoded);
@@ -205,8 +236,7 @@ function onScanSuccess(decoded){
    document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x scan hari ini`;
  }
  document.getElementById('resultBox').style.display='block'; if(navigator.vibrate) navigator.vibrate([200,100,200]);
-}
-  
+}  
 function setZoom(z){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{zoom:Math.min(z,track.getCapabilities().zoom.max)}]});}catch(e){}}
 function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{focusMode:"continuous"}]});}catch{html5QrcodeScanner.stop().then(()=>startCam());}}
 function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]});}}catch(e){}}
