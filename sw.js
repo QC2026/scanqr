@@ -6,7 +6,7 @@ const urlsToCache = [
   './riwayat.html',
   './manifest.json',
   './logo.png',
-  './html5-qrcode.minjs',
+  './html5-qrcode.min.js',
 ];
 
 self.addEventListener('install', event => {
