@@ -84,18 +84,15 @@ function getWIBDateTime(){
 function hitungBDL(idBdl){
   if(!idBdl) return 0;
   try{
-    let all = JSON.parse(localStorage.getItem('riwayat') || '[]');
-    let today = new Date().toDateString();
-    let target = idBdl.trim().toUpperCase();
-    let filtered = all.filter(d => {
-      try{
-        let tglData = d.WIB ? new Date(d.WIB).toDateString() : '';
-        let idData = (d.ID_BDL || '').toString().toUpperCase().trim();
-        return idData === target && tglData === today;
-      }catch(e){ return false; }
-    });
-    return filtered.length; // <-- HAPUS +1 NE, biar murni jumlah lama
-  }catch(e){ return 0; }
+    let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+    let todayID = new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});
+    let todayEN = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
+    return all.filter(d=>{
+      let waktu = (d.waktu||'') + ' ' + (d.TGL_CLIENT||'') + ' ' + (d.TANGGAL||'');
+      let isHariIni = waktu.includes(todayID) || waktu.includes(todayEN);
+      return isHariIni && (d.ID_BDL||'').toUpperCase()==idBdl.toUpperCase();
+    }).length;
+  }catch(e){return 0;}
 }
 // === ANTI NGADAT V5 - FINAL ===
 let lastScan = "";
@@ -169,69 +166,35 @@ async function startCam(){
     try{await html5QrcodeScanner.start({facingMode:"environment"},config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);return;}catch(e2){
       try{let cams=await Html5Qrcode.getCameras();if(!cams.length) throw e2; let back=cams[cams.length-1];let found=cams.find(c=>/back|rear|environment/i.test(c.label));if(found) back=found;await html5QrcodeScanner.start(back.id,config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),800);}catch(e3){document.getElementById('status').innerText="❌ Kamera diblokir - Aktifkan izin kamera di iPhone Settings > Safari";}}}
 }
- function onScanSuccess(decoded){
+function onScanSuccess(decoded){
  if(isPause) return;
- const now=Date.now(); 
- if(now-lastScanTime<800) return; lastScanTime=now;
+ const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
- let stepSekarang = (TYPE=='BALL" && cur ==0) ? 'QR CODE BAK' :(flow{cur}||'');
-    // === VALIDASI BAK & PAGER: TOLAK ID ===
- if(stepSekarang.includes('BAK') || stepSekarang.includes('PAGER')){
-   if(/^\d{5,6}$/.test(decoded)){
-     let el = document.getElementById('status');
-     el.innerText = `❌ DITOLAK! ${decoded} ITU ID, BUKAN ${stepSekarang}!`;
-     el.style.color = '#ff0000';
-     
-     // KEDIP2 EFEK
-     el.animate([
-       { opacity: 1, transform: 'scale(1)' },
-       { opacity: 0.3, transform: 'scale(1.1)' },
-       { opacity: 1, transform: 'scale(1)' }
-     ], { duration: 400, iterations: 3 });
-
-     if(navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
-     
-     // JANGAN PAUSE, BIAR KAMERA TETEP JALAN
-     isPause = false;
-     try{html5QrcodeScanner.resume();}catch(e){}
-     return;
-   }
- }
-
  if(TYPE=='BALL' && cur==0){
-   if(listBak.includes(decoded)){
-     document.getElementById('status').innerText='⚠️ QR udah ada!'; 
-     if(navigator.vibrate) navigator.vibrate([100,50,100]); 
-     return;
-   }
+   if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!'; if(navigator.vibrate) navigator.vibrate([100,50,100]); return;}
    listBak.push(decoded);
-   document.getElementById('step-info').innerText = `Siap Scan [${listBak.length}/8]`;
    document.getElementById('list-preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');
-   renderSteps(); 
-   if(navigator.vibrate) navigator.vibrate([80]);
+   renderSteps(); if(navigator.vibrate) navigator.vibrate([80]);
    document.getElementById('status').innerText=`✅ Masuk ${listBak.length}/8`;
    if(listBak.length < 8) return;
    document.getElementById('list8Preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');
    document.getElementById('verify8Box').style.display='block';
-   isPause=true; 
-   try{html5QrcodeScanner.pause(true);}catch(e){}
+   isPause=true; try{html5QrcodeScanner.pause(true);}catch(e){}
    return;
  }
- isPause=true; 
- tempScan=decoded; 
- try{html5QrcodeScanner.pause(true);}catch(e){}
+ isPause=true; tempScan=decoded; try{html5QrcodeScanner.pause(true);}catch(e){}
  document.getElementById('resStep').innerText=flow[cur];
  document.getElementById('resValue').innerText=decoded;
  document.getElementById('extraInfo').innerText='';
  if(TYPE=='BDL' && flow[cur]=='ID BDL'){
-   let c_lama = hitungBDL(decoded); // misal 0
-   let c_tampil = c_lama + 1; // 0+1 = 1
+   let c=hitungBDL(decoded)+1;
    document.getElementById('extraInfo').innerText=`🔢 ID BDL ini sudah scan ${c}x (termasuk yang ini)`;
+   document.getElementById('bdlCounter').style.display='block';
    document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x scan hari ini`;
  }
- document.getElementById('resultBox').style.display='block'; 
- if(navigator.vibrate) navigator.vibrate([200,100,200]);
+ document.getElementById('resultBox').style.display='block'; if(navigator.vibrate) navigator.vibrate([200,100,200]);
 }
+  
 function setZoom(z){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{zoom:Math.min(z,track.getCapabilities().zoom.max)}]});}catch(e){}}
 function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{focusMode:"continuous"}]});}catch{html5QrcodeScanner.stop().then(()=>startCam());}}
 function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]});}}catch(e){}}
