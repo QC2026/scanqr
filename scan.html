@@ -107,44 +107,55 @@ function cegahDoubleScan(value){
   lastTime = now;
   return "";
 }
-function validatePager(value, step){
-  if(!value || !step) return "";
+  function validatePager(value, step){
+  if(!value || !step) return "STEP/VALUE KOSONG!";
   value = value.trim().toUpperCase();
-  
-  // Ubah step menjadi kapital dan hapus spasi/strip agar pengecekan lebih akurat
-  step = step.toUpperCase().replace(/[\s_-]/g, ""); 
+  step = step.toString().toUpperCase().replace(/[\s_-]/g, "");
 
-  // Pastikan fungsi ini ada dan tidak error di kode lain
-  let dobel = cegahDoubleScan(value);
-  if(dobel) return dobel;
-// === KHUSUS SCAN BAK - WAJIB ADA HURUF & STRIP ===
-  // (step diubah jadi "BAK" atau "QR")
-  if(step.includes('BAK') || step.includes('QR')){
-    // Jika isinya HANYA angka (berapapun digitnya), TOLAK LANGSUNG
+  try{ 
+    if(typeof cegahDoubleScan === "function"){
+      let dobel = cegahDoubleScan(value);
+      if(dobel) return dobel;
+    }
+  }catch(e){}
+
+  // === KHUSUS SCAN BAK / QR ===
+  if(step.includes('BAK') || step === 'QR' || step.includes('QRBAK')){
+    // ID BDL = 5-6 angka doang -> TOLAK
+    if(/^\d{5,6}$/.test(value)){
+      return "SALAH! INI ID BDL, BUKAN QR BAK!";
+    }
+    // Cuma angka tok -> TOLAK
     if(/^\d+$/.test(value)){
       return "SALAH! INI ID ANGKA, BUKAN QR BAK!";
     }
-    // QR BAK wajib ada strip -
+    // QR BAK wajib ada - (G6-858 ada - jadi LOLOS)
     if(!value.includes('-')){
       return "SALAH! QR BAK HARUS ADA - !";
     }
+    // Minimal 4 karakter (G6-858 = 6 lolos, G1-1 = 4 lolos)
+    if(value.length < 4){
+      return "SALAH! QR BAK KEPENDEKAN!";
+    }
+    return ""; // LOLOS - G6-858 LOLOS DI SINI
   }
-  // === KHUSUS SCAN ID - WAJIB ANGKA ===
-  // (step dicek setelah spasi/strip dihapus, misal: "IDPC", "IDGL", "IDKMS")
+
+  // === KHUSUS SCAN ID ===
   if(step.includes('IDPC') || step.includes('IDGL') || step.includes('IDKMS') || step.includes('IDPACK') || step.includes('IDBDL') || step.includes('IDBALL')){
-    // Jika ada strip atau ada huruf alfabet, TOLAK
-    if(value.includes('-') || /[A-Z]/.test(value)){
+    if(value.includes('-')){
       return "SALAH! INI QR BAK, BUKAN ID!";
     }
-    // ID wajib berupa angka dan panjangnya HARUS 5 sampai 6 digit
+    if(/[A-Z]/.test(value)){
+      return "SALAH! INI QR BAK, BUKAN ID!";
+    }
     if(!/^\d{5,6}$/.test(value)){
       return "SALAH! ID HARUS 5-6 ANGKA!";
     }
+    return "";
   }
-    if(typeof navigator !== "undefined" && navigator.vibrate) {
-    navigator.vibrate(80);
-  }
-   return ""; // Lolos validasi
+
+  if(typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(80);
+  return "";
 }
 function confirm8(){
   document.getElementById('verify8Box').style.display='none';
