@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>#reader{width:100%;height:400px;background:#000}</style>
+</head>
+<body>
+<h3>Tes Kamera Mentah</h3>
+<div id="reader"></div>
+<p id="status">Mulai...</p>
+<script>
+async function tes(){
+  const reader = new Html5Qrcode("reader");
+  document.getElementById('status').innerText = "Minta izin...";
+  try{
+    await reader.start({facingMode:"environment"}, {fps:30, qrbox:250}, 
+      (txt)=>{document.getElementById('status').innerText="SUKSES SCAN: "+txt},
+      ()=>{}
+    );
+    document.getElementById('status').innerText = "KAMERA NYALA!";
+  }catch(e){
+    document.getElementById('status').innerText = "GAGAL: " + e.message;
+    alert("GAGAL: " + e);
+  }
+}
+tes();
+</script>
+</body>
+</html>
