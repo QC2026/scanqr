@@ -95,11 +95,15 @@ function renderSteps(){
 }
 function getWIBDateTime(){
   const now=new Date();
+  // ganti en-GB ben metu : ora titik
   const tgl_client=now.toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
   const tgl_client_id=now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});
-  const jam_client=now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false});
-  const full_client=tgl_client_id+' '+jam_client;
-  return{tgl_client,tgl_client_id,jam_client,full_client,raw:now};
+  
+  // PAKSA COLON
+  let jam_client = now.toLocaleTimeString('en-GB',{timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  
+  const full_client=tgl_client_id+' '+jam_client + ' WIB';
+  return{tgl_client,tgl_client_id,jam_client,full_client,raw:now, full_client: full_client, jam_client: jam_client};
 }
 function hitungBDL(idBdl){
   if(!idBdl) return 0;
