@@ -172,10 +172,32 @@ async function startCam(){
  function onScanSuccess(decoded){
  if(isPause) return;
  const now=Date.now(); 
- if(now-lastScanTime<800) return; 
- lastScanTime=now;
+ if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
- 
+ let stepSekarang = (TYPE=='BALL" && cur ==0) ? 'QR CODE BAK' :(flow{cur}||'');
+    // === VALIDASI BAK & PAGER: TOLAK ID ===
+ if(stepSekarang.includes('BAK') || stepSekarang.includes('PAGER')){
+   if(/^\d{5,6}$/.test(decoded)){
+     let el = document.getElementById('status');
+     el.innerText = `❌ DITOLAK! ${decoded} ITU ID, BUKAN ${stepSekarang}!`;
+     el.style.color = '#ff0000';
+     
+     // KEDIP2 EFEK
+     el.animate([
+       { opacity: 1, transform: 'scale(1)' },
+       { opacity: 0.3, transform: 'scale(1.1)' },
+       { opacity: 1, transform: 'scale(1)' }
+     ], { duration: 400, iterations: 3 });
+
+     if(navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+     
+     // JANGAN PAUSE, BIAR KAMERA TETEP JALAN
+     isPause = false;
+     try{html5QrcodeScanner.resume();}catch(e){}
+     return;
+   }
+ }
+
  if(TYPE=='BALL' && cur==0){
    if(listBak.includes(decoded)){
      document.getElementById('status').innerText='⚠️ QR udah ada!'; 
