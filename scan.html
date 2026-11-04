@@ -203,14 +203,6 @@ function renderSteps(){
  }
  document.getElementById('steps').innerHTML=h;
 }
-function getWIBDateTime(){
-  const now=new Date();
-  const tgl_client=now.toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
-  const tgl_client_id=now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});
-  const jam_client=now.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false});
-  const full_client=tgl_client_id+' '+jam_client;
-  return{tgl_client,tgl_client_id,jam_client,full_client,raw:now};
-}
 function cekOffline(){
   try{
     let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
@@ -257,23 +249,20 @@ async function KIRIM_RIWAYAT_PAGI(){
   alert(`BERES MIN! ${sukses} data pagi dari HP ini udah masuk sheet!`);
   setTimeout(()=>{ document.getElementById('emergencyBox').style.display='none'; },2000);
 }
-function hitungBDL(idBdl){
-  if(!idBdl) return 0;
-  try{
-    let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
-    let todayID = new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});
-    let todayEN = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
-    return all.filter(d=>{
-      let waktu = (d.waktu||'') + ' ' + (d.TGL_CLIENT||'') + ' ' + (d.TANGGAL||'');
-      let isHariIni = waktu.includes(todayID) || waktu.includes(todayEN);
-      return isHariIni && (d.ID_BDL||'').toUpperCase()==idBdl.toUpperCase();
-    }).length;
-  }catch(e){return 0;}
-}
 function onScanSuccess(decoded){
  if(isPause) return;
  const now=Date.now(); if(now-lastScanTime<800) return; lastScanTime=now;
  decoded = decoded.trim().toUpperCase();
+     // === MODE BAK G1-001 + BAK-1234 ===
+ // flow[cur] = step e, misal 'BAK', 'QR', 'ID BDL'
+ let stepSaiki = (typeof flow !== 'undefined' && flow[cur]) ? flow[cur] : TYPE;
+ let cekError = validatePager(decoded, stepSaiki);
+ if(cekError){
+   document.getElementById('status').innerText = '⛔ ' + cekError;
+   if(navigator.vibrate) navigator.vibrate([100,50,100,100]);
+   return; // WEGAH NEMBAK, BALIK SCAN MANEH
+ }
+
  if(TYPE=='BALL' && cur==0){
    if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!'; if(navigator.vibrate) navigator.vibrate([100,50,100]); return;}
    listBak.push(decoded);
