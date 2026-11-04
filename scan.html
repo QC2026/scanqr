@@ -72,7 +72,46 @@ function confirmScan(){document.getElementById('resultBox').style.display='none'
 function ulangCurrent(){document.getElementById('resultBox').style.display='none';isPause=false;tempScan="";lastScanTime=0;try{html5QrcodeScanner.resume()}catch(e){}}
 function inputManual(){let el=document.getElementById('manual');let v=el.value.trim();if(!v){el.focus();document.getElementById('status').innerText='⚠️ Ketik QR dulu';return}v=v.toUpperCase();el.value='';onScanSuccess(v)}
 function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempScan="";document.getElementById('resultBox').style.display='none';document.getElementById('verify8Box').style.display='none';document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';document.getElementById('bdlCounter').style.display='none';renderSteps();try{html5QrcodeScanner.resume()}catch(e){}}
-async function startCam(){html5QrcodeScanner=new Html5Qrcode("reader");const config={fps:15,qrbox:{width:300,height:300},aspectRatio:1.77,formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]};try{await html5QrcodeScanner.start({facingMode:"environment"},config,onScanSuccess,()=>{});setTimeout(()=>setZoom(2.5),600)}catch(e){try{let cams=await Html5Qrcode.getCameras();if(cams.length){await html5QrcodeScanner.start(cams[cams.length-1].id,config,onScanSuccess,()=>{})}}catch(e2){document.getElementById('status').innerText="❌ Kamera diblokir"}}}
+async function startCam(){
+  html5QrcodeScanner = new Html5Qrcode("reader");
+  const config = {fps:10, qrbox:{width:280,height:280}, formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]};
+  
+  // Coba 1: Kamera belakang (buat HP)
+  try{
+    await html5QrcodeScanner.start({facingMode:{exact:"environment"}}, config, onScanSuccess, ()=>{});
+    document.getElementById('status').innerText="✅ Kamera belakang aktif";
+    setTimeout(()=>setZoom(2.5),600);
+    return;
+  }catch(e){}
+
+  // Coba 2: Kamera belakang biasa
+  try{
+    await html5QrcodeScanner.start({facingMode:"environment"}, config, onScanSuccess, ()=>{});
+    document.getElementById('status').innerText="✅ Kamera belakang aktif";
+    setTimeout(()=>setZoom(2.5),600);
+    return;
+  }catch(e){}
+
+  // Coba 3: Kamera depan (buat LAPTOP - ini yang min butuh)
+  try{
+    await html5QrcodeScanner.start({facingMode:"user"}, config, onScanSuccess, ()=>{});
+    document.getElementById('status').innerText="✅ Kamera depan aktif (mode Laptop)";
+    return;
+  }catch(e){}
+
+  // Coba 4: Ambil kamera apa aja yang ada
+  try{
+    let cams = await Html5Qrcode.getCameras();
+    if(cams && cams.length){
+      // di laptop biasanya cuma 1, langsung pake itu
+      await html5QrcodeScanner.start(cams[0].id, config, onScanSuccess, ()=>{});
+      document.getElementById('status').innerText="✅ Kamera aktif: "+cams[0].label;
+      return;
+    }
+  }catch(e){}
+
+  document.getElementById('status').innerText="❌ Kamera diblokir - cek izin kamera di Chrome";
+}
 function setZoom(z){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.zoom){track.applyConstraints({advanced:[{zoom:Math.min(z,cap.zoom.max)}]})}}catch(e){}}
 function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{focusMode:"continuous"}]})}catch{html5QrcodeScanner.stop().then(()=>startCam())}}
 function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]})}}catch(e){}}
