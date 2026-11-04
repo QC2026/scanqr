@@ -58,7 +58,7 @@ function getWIBDateTime(){
   return{tgl_id:tgl_id,jam:jam,full_display:full_display}
 }
 function hitungBDL(id){if(!id)return 0;try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let todayID=new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});return all.filter(d=>{let w=(d.waktu||'')+' '+(d.TGL_CLIENT||'');return w.includes(todayID)&&(d.ID_BDL||'').toUpperCase()==id.toUpperCase()}).length}catch(e){return 0}}
-let lastScan="";let lastTime=0;function cegahDoubleScan(v){let now=Date.now();if(v===lastScan&&(now-lastTime)<3000)return"Sabar min, ojo di scan dobel!";lastScan=v;lastTime=now;return""}
+let lastScan="";let lastTime=0;function cegahDoubleScan(v){let now=Date.now();if(v===lastScan&&(now-lastTime)<3000)return"Sabar,ojo di scan dobel!";lastScan=v;lastTime=now;return""}
 function validatePager(value,step){if(!value||!step)return"STEP/VALUE KOSONG!";value=value.trim().toUpperCase();step=step.toString().toUpperCase().replace(/[\s_-]/g,"");try{let d=cegahDoubleScan(value);if(d)return d}catch(e){}if(step.includes('BAK')||step==='QR'||step.includes('QRBAK')){if(/^\d+$/.test(value))return"SALAH! INI BUKAN QR BAK !";if(/^\d{5,6}$/.test(value))return"SALAH! INI NO ID ANGKA TOK!";if(/^BAK-\d+$/.test(value))return"";if(/^G\d+-\d+$/.test(value))return"";if(!value.includes('-'))return"SALAH! HARUS G1-001 ATAU BAK-1234!";if(value.length<4)return"SALAH! KEPENDEKAN!";if(/^[A-Z]+\d*-\d+$/.test(value))return"";return"SALAH! FORMAT HARUS G1-001 ATAU BAK-1234!"}if(step.includes('IDPC')||step.includes('IDGL')||step.includes('IDKMS')||step.includes('IDPACK')||step.includes('IDBDL')||step.includes('IDBALL')){if(value.includes('-')||value.includes('BAK'))return"SALAH! INI QR BAK, BUKAN ID!";if(/[A-Z]/.test(value))return"SALAH! INI QR BAK, BUKAN ID!";if(!/^\d{5,6}$/.test(value))return"SALAH! ID HARUS 5-6 ANGKA!";return""}return""}
 const GOOGLE_URL="https://script.google.com/macros/s/AKfycbyh3iNQV_kjmj5Xougv71g7gxf9K16OMxdhsVVhifOXcR5PRKSP670k3Bq--Oz05UF7Sw/exec";
 const TYPE=(localStorage.getItem('scan_type')||'BALL').toUpperCase();document.getElementById('tipe').innerText='SCAN: '+TYPE;
@@ -117,22 +117,68 @@ function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track
 function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]})}}catch(e){}}
 async function gantiKamera(){try{await html5QrcodeScanner.stop()}catch{}startCam()}
 async function autoSave(){
-  if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
-  let bagian=localStorage.getItem('bagian')||TYPE;const wib=getWIBDateTime();let tgl_input=wib.tgl_id;let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
-  if(TYPE=='BALL'){
-    listBak.forEach(qr=>{if(!qr)return;let idx=all.findIndex(d=>d.QR_BAK==qr);if(idx==-1){all.push({QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,status:'Lokal'})}});
-    localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));
-    let kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display};
-    document.getElementById('status').innerText="⏳ KIRIM 8 BAK...";try{await fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});document.getElementById('status').innerText="✅ 8 BAK TERKIRIM "+wib.full_display}catch(e){document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN"}
-    setTimeout(()=>{alert('✅ Tersimpan 8 BAK!\nJam: '+wib.full_display);location.href='index.html'},800);return
+  // JANGAN STOP KAMERA DULU BIAR GAK ERROR - SIMPEN DULU
+  let bagian=localStorage.getItem('bagian')||TYPE;
+  const wib=getWIBDateTime();
+  let tgl_input=wib.tgl_id; // 04/11/2026 OPSI B
+  
+  try{
+    let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+    
+    if(TYPE=='BALL'){
+      listBak.forEach(qr=>{
+        if(!qr) return;
+        let idx=all.findIndex(d=>d.QR_BAK==qr);
+        if(idx==-1){
+          all.push({QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,status:'Lokal'});
+        } else {
+          all[idx].ID_BALL=res['ID BALL']||''; all[idx].NO_BOX=res['NO BOX']||'';
+        }
+      });
+    } else {
+      let qr=res['QR CODE BAK']||'';
+      let idx=all.findIndex(d=>d.QR_BAK==qr && !d.ID_BALL);
+      if(idx==-1){
+        all.push({QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,status:'Lokal'});
+      } else {
+        if(TYPE=='KMS') all[idx].ID_KMS=res['ID KMS']||'';
+        if(TYPE=='PACK') all[idx].ID_PACK=res['ID PACK']||'';
+        if(TYPE=='BDL') all[idx].ID_BDL=res['ID BDL']||'';
+        all[idx].status='Lokal';
+      }
+    }
+    
+    // SIMPAN DULU KE RIWAYAT - INI YANG PENTING BUAT OFFLINE
+    localStorage.setItem('riwayat',JSON.stringify(all));
+    localStorage.setItem('riwayat_scan',JSON.stringify(all));
+    console.log("✅ RIWAYAT TERSIMPAN OFFLINE", all.length);
+  }catch(err){
+    alert("Gagal simpen riwayat: "+err);
+    return;
   }
-  let qr=res['QR CODE BAK']||'';let idx=all.findIndex(d=>d.QR_BAK==qr&&!d.ID_BALL);if(idx==-1){all.push({QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,status:'Lokal'})}
-  localStorage.setItem('riwayat',JSON.stringify(all));localStorage.setItem('riwayat_scan',JSON.stringify(all));
-  let kirim={QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TYPE:TYPE};
-  document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_display;try{await fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_display}catch(e){document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display}
-  setTimeout(()=>{alert('✅ Tersimpan! '+TYPE+' - '+qr+'\nJam: '+wib.full_display);location.href='index.html'},800);
+
+  // BARU STOP KAMERA
+  if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
+
+  // BARU COBA KIRIM KE SHEET
+  let kirim;
+  if(TYPE=='BALL'){
+    kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display};
+  } else {
+    kirim={QR_BAK:res['QR CODE BAK']||'',ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TYPE:TYPE};
+  }
+
+  document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_display;
+  try{
+    await fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
+    document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_display;
+  }catch(e){
+    document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display;
+  }
+
+  setTimeout(()=>{alert('✅ Tersimpan! (Offline aman)\nJam: '+wib.full_display+'\nCek di Riwayat ya min');location.href='index.html';},600);
 }
-function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
+  function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
 setInterval(updateJamLive,1000);updateJamLive();
 renderSteps();startCam();
 </script>
