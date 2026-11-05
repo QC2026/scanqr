@@ -81,7 +81,7 @@ function validatePager(value, step){
     return "SALAH! FORMAT HARUS G1-001 ATAU BAK-1234!";
   }
 
-  // 2. VALIDASI ID KMS, PACK, BDL, GL, PC (masih angka 5-6 digit)
+  // 2. VALIDASI ID KMS, PACK, BDL, GL, PC (angka 5-6 digit)
   if(step.includes('IDPC') || step.includes('IDGL') || step.includes('IDKMS') || step.includes('IDPACK') || step.includes('IDBDL')){
     if(value.includes('-') || value.includes('BAK')) return "SALAH! INI QR BAK, BUKAN ID!";
     if(/[A-Z]/.test(value)) return "SALAH! INI QR BAK, BUKAN ID!";
@@ -89,25 +89,23 @@ function validatePager(value, step){
     return "";
   }
 
-  // 3. VALIDASI KHUSUS BALL & BOX (INI YANG BARU - FAUZIAH-13 BOX-027)
+  // 3. VALIDASI KHUSUS BALL & BOX (SUDAH DIHAPUS YANG NGACO, JADI KETAT)
   if(step.includes('IDBALL') || step.includes('BALL') || step.includes('BOX')){
-    // Format bener: FAUZIAH-13, FAUZAN-21, EKO-12, DWI-30, BOX-027, BOX-004
+    // Format bener: FAUZIAH-13, FAUZAN-21, EKO-12, BOX-027
+    
     if (/^[A-Z]+-\d{1,4}$/.test(value)) return ""; // FAUZIAH-13
-    if (/^BOX-\d{1,4}$/.test(value)) return ""; // BOX-027
-    
-    // Format gabungan 1 QR: "FAUZIAH-13 BOX-027" kayak di foto
-    if (/^[A-Z]+-\d+\s+BOX-\d+$/.test(value)) return "";
-    if (value.includes("FAUZIAH") || value.includes("FAUZAN") || value.includes("EKO") || value.includes("DWI") || value.includes("BOX")) {
-       // kasih toleransi kalo ada spasi
-       return "";
+    if (/^BOX-\d{1,4}$/.test(value)) return ""; // BOX-027 -> INI KHUSUS NO BOX WAJIB BOX-
+
+    // Kalo NO BOX gak ada BOX- nya, TOLAK
+    if(step.includes('BOX')){
+      return "SALAH! NO BOX WAJIB BOX-...! CONTOH: BOX-027";
     }
-    
-    return "SALAH! FORMAT BALL HARUS NAMA-13 ATAU BOX-027! CONTOH: FAUZIAH-13 BOX-027";
+
+    return "SALAH! FORMAT HARUS NAMA-13 ATAU BOX-027! CONTOH: FAUZIAH-13";
   }
 
   return "";
 }
-
 // Helper biar gak double scan (kalo ada)
 function cegahDoubleScan(val){
   // kalo gak ada function ini, biarin aja return kosong
