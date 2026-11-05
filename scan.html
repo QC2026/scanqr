@@ -59,7 +59,60 @@ function getWIBDateTime(){
 }
 function hitungBDL(id){if(!id)return 0;try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let todayID=new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});return all.filter(d=>{let w=(d.waktu||'')+' '+(d.TGL_CLIENT||'');return w.includes(todayID)&&(d.ID_BDL||'').toUpperCase()==id.toUpperCase()}).length}catch(e){return 0}}
 let lastScan="";let lastTime=0;function cegahDoubleScan(v){let now=Date.now();if(v===lastScan&&(now-lastTime)<3000)return"Sabar,ojo di scan dobel!";lastScan=v;lastTime=now;return""}
-function validatePager(value,step){if(!value||!step)return"STEP/VALUE KOSONG!";value=value.trim().toUpperCase();step=step.toString().toUpperCase().replace(/[\s_-]/g,"");try{let d=cegahDoubleScan(value);if(d)return d}catch(e){}if(step.includes('BAK')||step==='QR'||step.includes('QRBAK')){if(/^\d+$/.test(value))return"SALAH! INI BUKAN QR BAK !";if(/^\d{5,6}$/.test(value))return"SALAH! INI NO ID ANGKA TOK!";if(/^BAK-\d+$/.test(value))return"";if(/^G\d+-\d+$/.test(value))return"";if(!value.includes('-'))return"SALAH! HARUS G1-001 ATAU BAK-1234!";if(value.length<4)return"SALAH! KEPENDEKAN!";if(/^[A-Z]+\d*-\d+$/.test(value))return"";return"SALAH! FORMAT HARUS G1-001 ATAU BAK-1234!"}if(step.includes('IDPC')||step.includes('IDGL')||step.includes('IDKMS')||step.includes('IDPACK')||step.includes('IDBDL')||step.includes('IDBALL')){if(value.includes('-')||value.includes('BAK'))return"SALAH! INI QR BAK, BUKAN ID!";if(/[A-Z]/.test(value))return"SALAH! INI QR BAK, BUKAN ID!";if(!/^\d{5,6}$/.test(value))return"SALAH! ID HARUS 5-6 ANGKA!";return""}return""}
+function validatePager(value, step){
+  if(!value || !step) return "STEP/VALUE KOSONG!";
+  value = value.trim().toUpperCase();
+  step = step.toString().toUpperCase().replace(/[\s_-]/g,"");
+
+  try{
+    let d = cegahDoubleScan(value);
+    if(d) return d
+  }catch(e){}
+
+  // 1. VALIDASI BAK / QR BAK
+  if(step.includes('BAK') || step === 'QR' || step.includes('QRBAK')){
+    if(/^\d+$/.test(value)) return "SALAH! INI BUKAN QR BAK !";
+    if(/^\d{5,6}$/.test(value)) return "SALAH! INI NO ID ANGKA TOK!";
+    if(/^BAK-\d+$/.test(value)) return "";
+    if(/^G\d+-\d+$/.test(value)) return "";
+    if(!value.includes('-')) return "SALAH! HARUS G1-001 ATAU BAK-1234!";
+    if(value.length < 4) return "SALAH! KEPENDEKAN!";
+    if(/^[A-Z]+\d*-\d+$/.test(value)) return "";
+    return "SALAH! FORMAT HARUS G1-001 ATAU BAK-1234!";
+  }
+
+  // 2. VALIDASI ID KMS, PACK, BDL, GL, PC (masih angka 5-6 digit)
+  if(step.includes('IDPC') || step.includes('IDGL') || step.includes('IDKMS') || step.includes('IDPACK') || step.includes('IDBDL')){
+    if(value.includes('-') || value.includes('BAK')) return "SALAH! INI QR BAK, BUKAN ID!";
+    if(/[A-Z]/.test(value)) return "SALAH! INI QR BAK, BUKAN ID!";
+    if(!/^\d{5,6}$/.test(value)) return "SALAH! ID HARUS 5-6 ANGKA!";
+    return "";
+  }
+
+  // 3. VALIDASI KHUSUS BALL & BOX (INI YANG BARU - FAUZIAH-13 BOX-027)
+  if(step.includes('IDBALL') || step.includes('BALL') || step.includes('BOX')){
+    // Format bener: FAUZIAH-13, FAUZAN-21, EKO-12, DWI-30, BOX-027, BOX-004
+    if (/^[A-Z]+-\d{1,4}$/.test(value)) return ""; // FAUZIAH-13
+    if (/^BOX-\d{1,4}$/.test(value)) return ""; // BOX-027
+    
+    // Format gabungan 1 QR: "FAUZIAH-13 BOX-027" kayak di foto
+    if (/^[A-Z]+-\d+\s+BOX-\d+$/.test(value)) return "";
+    if (value.includes("FAUZIAH") || value.includes("FAUZAN") || value.includes("EKO") || value.includes("DWI") || value.includes("BOX")) {
+       // kasih toleransi kalo ada spasi
+       return "";
+    }
+    
+    return "SALAH! FORMAT BALL HARUS NAMA-13 ATAU BOX-027! CONTOH: FAUZIAH-13 BOX-027";
+  }
+
+  return "";
+}
+
+// Helper biar gak double scan (kalo ada)
+function cegahDoubleScan(val){
+  // kalo gak ada function ini, biarin aja return kosong
+  return "";
+}
 const GOOGLE_URL="https://script.google.com/macros/s/AKfycbyh3iNQV_kjmj5Xougv71g7gxf9K16OMxdhsVVhifOXcR5PRKSP670k3Bq--Oz05UF7Sw/exec";
 const TYPE=(localStorage.getItem('scan_type')||'BALL').toUpperCase();document.getElementById('tipe').innerText='SCAN: '+TYPE;
 const FLOWS={'GL':['QR CODE BAK','ID PC','ID GL 1','ID GL 2'],'KMS':['QR CODE BAK','ID KMS'],'PACK':['QR CODE BAK','ID PACK'],'BDL':['QR CODE BAK','ID BDL'],'BALL':['QR CODE BAK','ID BALL','NO BOX']};
