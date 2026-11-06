@@ -139,7 +139,7 @@ function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempSc
 async function startCam(){
   html5QrcodeScanner = new Html5Qrcode("reader");
   const conf
-    config = {fps:10, qrbox:{width:260,height:260}, formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]};
+    config = {fps:10, qrbox:{width:280,height:280}, formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]};
   
   // Coba 1: Kamera belakang (buat HP)
   try{
