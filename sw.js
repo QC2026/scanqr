@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qc-scan-v4-final-terang';
+const CACHE_NAME = 'qc-scan-v5-final-terang';
 const urlsToCache = [
   './',
   './index.html',
