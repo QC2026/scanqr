@@ -138,7 +138,8 @@ function inputManual(){let el=document.getElementById('manual');let v=el.value.t
 function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempScan="";document.getElementById('resultBox').style.display='none';document.getElementById('verify8Box').style.display='none';document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';document.getElementById('bdlCounter').style.display='none';renderSteps();try{html5QrcodeScanner.resume()}catch(e){}}
 async function startCam(){
   html5QrcodeScanner = new Html5Qrcode("reader");
-  const config = {fps:25, qrbox:{width:280,height:280}, formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]};
+  const conf
+    config = {fps:15, qrbox:{width:280,height:280}, formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]};
   
   // Coba 1: Kamera belakang (buat HP)
   try{
@@ -156,7 +157,7 @@ async function startCam(){
     return;
   }catch(e){}
 
-  // Coba 3: Kamera depan (buat LAPTOP - ini yang min butuh)
+  // Coba 3: Kamera depan (buat LAPTOP )
   try{
     await html5QrcodeScanner.start({facingMode:"user"}, config, onScanSuccess, ()=>{});
     document.getElementById('status').innerText="✅ Kamera depan aktif (mode Laptop)";
@@ -184,7 +185,7 @@ async function autoSave(){
   
   let bagian=localStorage.getItem('bagian')||TYPE;
   const wib=getWIBDateTime();
-  let tgl_input=wib.tgl_id; // 04/11/2026 OPSI B
+  let tgl_input=wib.tgl_id; 
   
   try{
     let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
@@ -239,7 +240,7 @@ if(TYPE=='BALL'){
     document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display;
   }
 
-  setTimeout(()=>{alert('✅ Tersimpan! (Offline aman)\nJam: '+wib.full_display+'\nCek di Riwayat ya min');location.href='index.html';},600);
+  setTimeout(()=>{alert('✅ Tersimpan! (Offline aman)\nJam: '+wib.full_display+'\nCek di Riwayat ya');location.href='index.html';},600);
 }
   function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
 setInterval(updateJamLive,1000);updateJamLive();
