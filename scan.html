@@ -196,6 +196,9 @@ async function autoSave(){
         let sudah = all.some(d=>d.QR_BAK==qr && d.TANGGAL==hariIni && d.status=='Terkirim');
         if(sudah){
           alert('⚠️ QR BAK '+qr+' sudah discan hari ini!');
+          if(sudah){
+  // biarin aja lewat, tetep lanjut kirim
+      console.log('QR sudah ada tapi tetep dikirim ulang:', qr);
         }
         let idx=all.findIndex(d=>d.QR_BAK==qr);
         if(idx==-1){
@@ -252,21 +255,51 @@ async function autoSave(){
   if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
 
   // === 2. COBA KIRIM KE SHEET ===
-  let kirim;
+let kirim;
   if(TYPE=='BALL'){
-    kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis};
+    kirim={
+      TYPE:'BALL_8',
+      LIST_BAK:listBak,
+      ID_BALL:res['ID BALL']||'',
+      NO_BOX:res['NO BOX']||'',
+      BAGIAN:bagian,
+      TGL_CLIENT:wib.tgl_id,
+      TGL_JAM_CLIENT:wib.full_display,
+      JAM_HP:wib.full_display, // <-- WAJIB buat code.gs lama
+      TGL_ISO:wib.iso,
+      JAM_MILIS:wib.milis,
+      JAM_CLIENT:wib.jam,
+      TARGET_SHEET:""
+    };
   } else {
-    kirim={QR_BAK:res['QR CODE BAK']||'',ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis,TYPE:TYPE};
+    kirim={
+      QR_BAK:res['QR CODE BAK']||'',
+      ID_PC:res['ID PC']||'',
+      ID_GL:res['ID GL 1']||'',
+      ID_GL2:res['ID GL 2']||'',
+      ID_KMS:res['ID KMS']||'',
+      ID_PACK:res['ID PACK']||'',
+      ID_BDL:res['ID BDL']||'',
+      BAGIAN:bagian,
+      TGL_CLIENT:wib.tgl_id,
+      TGL_JAM_CLIENT:wib.full_display,
+      JAM_HP:wib.full_display, // <-- WAJIB
+      TGL_ISO:wib.iso,
+      JAM_MILIS:wib.milis,
+      JAM_CLIENT:wib.jam,
+      TYPE:TYPE,
+      TARGET_SHEET:""
+    };
   }
   
   document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_display;
   try{
-    await fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
+    // JANGAN pakai await, biar gak ke-block
+    fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
     document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_display;
     
-    // === 3. UPDATE JAM KIRIM PAS SUKSES ===
     let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
-    let wib2=getWIBDateTime(); // jam terkini pas kekirim
+    let wib2=getWIBDateTime();
     if(TYPE=='BALL'){
       listBak.forEach(qr=>{
         let idx=all.findIndex(d=>d.QR_BAK==qr);
@@ -274,16 +307,16 @@ async function autoSave(){
       });
     } else {
       let qr=res['QR CODE BAK']||'';
-      let idx=all.findIndex(d=>d.QR_BAK==qr && d.status!='Terkirim');
+      let idx=all.findIndex(d=>d.QR_BAK==qr);
       if(idx!=-1){ all[idx].JAM_KIRIM=wib2.jam; all[idx].status='Terkirim'; }
     }
     localStorage.setItem('riwayat_scan',JSON.stringify(all));
 
   }catch(e){
-    document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display+" (JAM SCAN: "+wib.jam+")";
+    document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display;
   }
 
-  setTimeout(()=>{alert('✅ Tersimpan!\nJAM SCAN: '+wib.jam+'\nJAM KIRIM: '+(document.getElementById('status').innerText.includes('TERKIRIM')?getWIBDateTime().jam:'Pending - nanti auto kirim')) ;location.href='index.html';},600);
+  setTimeout(()=>{alert('✅ Tersimpan! JAM SCAN: '+wib.jam) ;location.href='index.html';},600);
 }
   function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
