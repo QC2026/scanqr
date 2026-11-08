@@ -9,7 +9,7 @@
 body{margin:0;background:#0a0a0a;color:#ffd700;font-family:sans-serif;padding:12px}
 .header{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#1a1a1a,#000);border:2px solid #c9a84c;border-radius:12px;padding:10px}
 .pt{background:#b91c1c;border:2px solid gold;border-radius:10px;padding:8px 12px;color:white;font-weight:900;flex:1;text-align:center}
-.box{background:#111;border:2px solid #c9a84c;border-radius:12px;padding:12px;margin-top:12px}
+.box{background:#111;border:2px solid #c9a84c;border-radius:12px;padding:12px;margin-top:12px} 
 .step{display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:4px;border:1px solid #444}
 .active{background:gold;color:black}.done{background:#0f0;color:black}.wait{background:#222;color:#888}
 #reader{width:100%;min-height:60vh;background:#000;border-radius:12px;overflow:hidden;margin-top:12px}
@@ -138,7 +138,7 @@ function inputManual(){let el=document.getElementById('manual');let v=el.value.t
 function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempScan="";document.getElementById('resultBox').style.display='none';document.getElementById('verify8Box').style.display='none';document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';document.getElementById('bdlCounter').style.display='none';renderSteps();try{html5QrcodeScanner.resume()}catch(e){}}
 async function startCam(){
   html5QrcodeScanner = new Html5Qrcode("reader");
- const config = {fps:10, qrbox:{width:280, height:280}};
+ const config = {fps:15, qrbox:{width:280, height:280}};
   // Coba 1: Kamera belakang (buat HP)
   try{
     await html5QrcodeScanner.start({facingMode:{exact:"environment"}}, config, onScanSuccess, ()=>{});
@@ -180,68 +180,151 @@ function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track
 function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]})}}catch(e){}}
 async function gantiKamera(){try{await html5QrcodeScanner.stop()}catch{}startCam()}
 async function autoSave(){
-  
   let bagian=localStorage.getItem('bagian')||TYPE;
   const wib=getWIBDateTime();
   let tgl_input=wib.tgl_id; 
   
+  // === 1. CEK DOBEL HARIAN DULU ===
+  let hariIni = wib.tgl_id;
   try{
-    let all=JSON.parse(localStorage.getItem('riwayat')||'[]');
+    let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
     
     if(TYPE=='BALL'){
       listBak.forEach(qr=>{
         if(!qr) return;
+        // CEK DOBEL
+        let sudah = all.some(d=>d.QR_BAK==qr && d.TANGGAL==hariIni && d.status=='Terkirim');
+        if(sudah){
+          alert('⚠️ QR BAK '+qr+' sudah discan hari ini!');
+          return;
+        }
         let idx=all.findIndex(d=>d.QR_BAK==qr);
         if(idx==-1){
-          all.push({QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,status:'Lokal'});
+          all.push({
+            QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',
+            BAGIAN:bagian,
+            TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,
+            JAM_SCAN:wib.jam, // <-- JAM SCAN
+            JAM_KIRIM:'-', // <-- BELUM KIRIM
+            waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,
+            status:'Lokal (Pending)'
+          });
         } else {
           all[idx].ID_BALL=res['ID BALL']||''; all[idx].NO_BOX=res['NO BOX']||'';
+          all[idx].JAM_SCAN=wib.jam; // update jam scan
         }
       });
     } else {
       let qr=res['QR CODE BAK']||'';
+      let sudah = all.some(d=>d.QR_BAK==qr && d.TANGGAL==hariIni && d.status=='Terkirim' && !d.ID_BALL);
+      if(sudah){
+        alert('⚠️ QR ini sudah discan hari ini: '+qr);
+        document.getElementById('status').innerText="⚠️ SUDAH ADA HARI INI";
+        return;
+      }
       let idx=all.findIndex(d=>d.QR_BAK==qr && !d.ID_BALL);
       if(idx==-1){
-        all.push({QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'',BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,status:'Lokal'});
+        all.push({
+          QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',
+          ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'',
+          BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,
+          JAM_SCAN:wib.jam, // <-- JAM SCAN
+          JAM_KIRIM:'-', // <-- BELUM KIRIM
+          waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,
+          status:'Lokal (Pending)'
+        });
       } else {
         if(TYPE=='KMS') all[idx].ID_KMS=res['ID KMS']||'';
         if(TYPE=='PACK') all[idx].ID_PACK=res['ID PACK']||'';
         if(TYPE=='BDL') all[idx].ID_BDL=res['ID BDL']||'';
-        all[idx].status='Lokal';
+        all[idx].JAM_SCAN=wib.jam;
+        all[idx].status='Lokal (Pending)';
       }
     }
     
-    // SIMPAN DULU KE RIWAYAT -UNTUK OFFLINE
-    localStorage.setItem('riwayat',JSON.stringify(all));
     localStorage.setItem('riwayat_scan',JSON.stringify(all));
     console.log("✅ RIWAYAT TERSIMPAN OFFLINE", all.length);
+    localStorage.removeItem('riwayat');
   }catch(err){
     alert("Gagal simpen riwayat: "+err);
     return;
   }
 
-  // BARU STOP KAMERA
   if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
 
-  // BARU COBA KIRIM KE SHEET
- let kirim;
-if(TYPE=='BALL'){
-  kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis};
-} else {
-  kirim={QR_BAK:res['QR CODE BAK']||'',ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis,TYPE:TYPE};
-}
+  // === 2. COBA KIRIM KE SHEET ===
+  let kirim;
+  if(TYPE=='BALL'){
+    kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis};
+  } else {
+    kirim={QR_BAK:res['QR CODE BAK']||'',ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_KMS:tgl_input,TGL_CLIENT:wib.tgl_id,JAM_CLIENT:wib.jam,TGL_JAM_CLIENT:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis,TYPE:TYPE};
+  }
+  
   document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_display;
   try{
     await fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
     document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_display;
+    
+    // === 3. UPDATE JAM KIRIM PAS SUKSES ===
+    let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
+    let wib2=getWIBDateTime(); // jam terkini pas kekirim
+    if(TYPE=='BALL'){
+      listBak.forEach(qr=>{
+        let idx=all.findIndex(d=>d.QR_BAK==qr);
+        if(idx!=-1){ all[idx].JAM_KIRIM=wib2.jam; all[idx].status='Terkirim'; }
+      });
+    } else {
+      let qr=res['QR CODE BAK']||'';
+      let idx=all.findIndex(d=>d.QR_BAK==qr && d.status!='Terkirim');
+      if(idx!=-1){ all[idx].JAM_KIRIM=wib2.jam; all[idx].status='Terkirim'; }
+    }
+    localStorage.setItem('riwayat_scan',JSON.stringify(all));
+
   }catch(e){
-    document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display;
+    document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display+" (JAM SCAN: "+wib.jam+")";
   }
 
-  setTimeout(()=>{alert('✅ Tersimpan! (Offline aman)\nJam: '+wib.full_display+'\nCek di Riwayat ya');location.href='index.html';},600);
+  setTimeout(()=>{alert('✅ Tersimpan!\nJAM SCAN: '+wib.jam+'\nJAM KIRIM: '+(document.getElementById('status').innerText.includes('TERKIRIM')?getWIBDateTime().jam:'Pending - nanti auto kirim')) ;location.href='index.html';},600);
 }
-  function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
-setInterval(updateJamLive,1000);updateJamLive();
+  function renderRiwayat(){
+  let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
+  let wadah = document.getElementById('list-riwayat');
+  if(!wadah) return;
+  
+  if(all.length==0){
+    wadah.innerHTML = '<div style="text-align:center;padding:20px">Belum ada scan hari ini</div>';
+    return;
+  }
+
+  let html = '';
+  all.forEach(r=>{
+    let warna = r.status=='Terkirim' ? '#d4edda' : '#fff3cd';
+    let icon = r.status=='Terkirim' ? '✅' : '⏳';
+    let jamKirim = r.JAM_KIRIM && r.JAM_KIRIM!='-' ? r.JAM_KIRIM : 'Belum kekirim';
+    
+    html += `
+      <div style="background:${warna};margin:5px 0;padding:10px;border-radius:8px;border-left:4px solid ${r.status=='Terkirim'?'green':'orange'}">
+        <div style="font-weight:bold">${icon} QR: ${r.QR_BAK}</div>
+        <div style="font-size:12px;color:#333">
+          📅 ${r.TANGGAL} | 
+          📷 SCAN: <b>${r.JAM_SCAN||'-'}</b> | 
+          📤 KIRIM: <b>${jamKirim}</b>
+        </div>
+        <div style="font-size:11px;color:#666">
+          BAGIAN: ${r.BAGIAN||'-'} | ${r.ID_KMS||r.ID_PACK||r.ID_BDL||r.ID_BALL||''} | Status: ${r.status}
+        </div>
+      </div>
+    `;
+  });
+  
+  wadah.innerHTML = html;
+}
+
+// === 3. JAM LIVE + RENDER ===
+function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
+setInterval(updateJamLive,1000);
+
+function updateJamLive();
 renderSteps();startCam();
 </script>
 </body>
