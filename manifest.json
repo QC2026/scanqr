@@ -1,14 +1,20 @@
 {
-  "name": "QC PT Urip Sugiarto",
-  "short_name": "QC Urip",
-  "start_url": "/scanqr/",
+  "name": "SCAN US",
+  "short_name": "SCAN US",
+  "start_url": "./scan.html",
   "display": "standalone",
-  "background_color": "#080808",
-  "theme_color": "#ffaa33",
+  "background_color": "#101010",
+  "theme_color": "#cc0000",
   "icons": [
     {
-      "src": "logo.png",
-      "sizes": "190x190",
+      "src": "./logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./logo.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
