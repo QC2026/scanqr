@@ -324,7 +324,7 @@ async function autoSave(){
 function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
 setInterval(updateJamLive,1000);
 
-function updateJamLive();
+updateJamLive();
 renderSteps();startCam();
 </script>
 </body>
