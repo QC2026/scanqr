@@ -196,7 +196,6 @@ async function autoSave(){
         let sudah = all.some(d=>d.QR_BAK==qr && d.TANGGAL==hariIni && d.status=='Terkirim');
         if(sudah){
           alert('⚠️ QR BAK '+qr+' sudah discan hari ini!');
-          return;
         }
         let idx=all.findIndex(d=>d.QR_BAK==qr);
         if(idx==-1){
