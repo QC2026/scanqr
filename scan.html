@@ -124,7 +124,7 @@ function cegahDoubleScan(val){
   // kalo gak ada function ini, biarin aja return kosong
   return "";
 }
-const GOOGLE_URL="https://script.google.com/macros/s/AKfycbx86J-gNY2I80DY8KDWW-6qqKs6-Ik8Yscbm15ON78su5izrNDofM5HCkmyzzUE-wDTWA/exec";
+const GOOGLE_URL="https://script.google.com/macros/s/AKfycbwma-WPVZd248l95YlKIYR-p-9mvLzXDjq11l1TFy93JJNs7QpEVp73_ECc_TqE7OUruA/exec";
 const TYPE=(localStorage.getItem('scan_type')||'BALL').toUpperCase();document.getElementById('tipe').innerText='SCAN: '+TYPE;
 const FLOWS={'GL':['QR CODE BAK','ID PC','ID GL 1','ID GL 2'],'KMS':['QR CODE BAK','ID KMS'],'PACK':['QR CODE BAK','ID PACK'],'BDL':['QR CODE BAK','ID BDL'],'BALL':['QR CODE BAK','ID BALL','NO BOX']};
 let flow=FLOWS[TYPE]||FLOWS['BALL'];let cur=0;let res={};let listBak=[];let html5QrcodeScanner;let lastScanTime=0;let isPause=false;let tempScan="";let torchOn=false;
