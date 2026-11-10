@@ -1,22 +1,44 @@
-const CACHE_NAME = "qc-v8-final";
-const FILES = ["./", "./index.html", "./manifest.json", "./logo.png"];
+const CACHE_NAME = 'qc-scan-v9-final-terang';
+const urlsToCache = [
+  './',
+  './index.html',
+  './scan.html',
+  './riwayat.html',
+  './manifest.json',
+  './logo.png',
+  './html5-qrcode.min.js',
+];
 
-self.addEventListener("install", e => {
+self.addEventListener('install', event => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+  );
 });
 
-self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));
-  self.clients.claim();
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => { if (key !== CACHE_NAME) return caches.delete(key); })
+    )).then(() => self.clients.claim())
+  );
 });
 
-self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
-  if (e.request.url.includes("html5-qrcode")) return;
-  if (e.request.url.includes("chrome-extension")) return;
-  
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
+self.addEventListener('fetch', event => {
+  // Kalau scan.html, coba internet dulu biar terbaru, kalau offline baru pakai cache!
+  if (event.request.url.includes('scan.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(res => {
+          // kalau online, simpan yang terbaru ke cache
+          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  event.respondWith(
+    caches.match(event.request).then(res => res || fetch(event.request))
   );
 });
