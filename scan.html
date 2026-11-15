@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">  
 <title>PT URIP SUGIARTO</title>
 <script src="html5-qrcode.min.js"></script>
 <style>
@@ -274,13 +277,25 @@ async function autoSave(){
   }
   setTimeout(()=>{alert('✅ Tersimpan! JAM SCAN: '+wib.jam);location.href='index.html';},600);
 }
-  function renderRiwayat(){
+ function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let wadah = document.getElementById('list-riwayat');
   if(!wadah) return;
-  
+
+  // === TAMBAHAN RESET 1 MINGGU - TARO DI SINI ===
+  let sekarang = Date.now();
+  let seminggu = 7 * 24 * 60 * 60 * 1000;
+  all = all.filter(r => {
+    let tgl = new Date(r.TANGGAL + ' ' + (r.JAM_SCAN||'00:00')).getTime();
+    if(isNaN(tgl)) return true; // kalau tanggal error, biarin aja
+    return (sekarang - tgl) < seminggu;
+  });
+  // simpan lagi yang sudah ke filter 1 minggu
+  localStorage.setItem('riwayat_scan', JSON.stringify(all));
+  // === SELESAI TAMBAHAN ===
+
   if(all.length==0){
-    wadah.innerHTML = '<div style="text-align:center;padding:20px">Belum ada scan hari ini</div>';
+    wadah.innerHTML = '<div style="text-align:center;padding:20px">Belum ada scan hari ini (7 hari terakhir)</div>';
     return;
   }
 
@@ -304,10 +319,8 @@ async function autoSave(){
       </div>
     `;
   });
-  
   wadah.innerHTML = html;
 }
-
 // === 3. JAM LIVE + RENDER ===
 function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
 setInterval(updateJamLive,1000);
@@ -315,5 +328,16 @@ setInterval(updateJamLive,1000);
 updateJamLive();
 renderSteps();startCam();
 </script>
+<script>
+// AUTO UPDATE V197 - PKJ AUTO UPDATE
+var VERSI_SERVER = "197";
+var VERSI_HP = localStorage.getItem("VERSI_APP");
+if(VERSI_HP !== VERSI_SERVER){
+  localStorage.clear();
+  localStorage.setItem("VERSI_APP", VERSI_SERVER);
+  window.location.href = window.location.href.split('?')[0] + "?v=" + Date.now();
+}
+</script>
+
 </body>
 </html>
