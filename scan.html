@@ -248,34 +248,99 @@ async function autoSave(){
   if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
 
   // === 2. KIRIM KE SHEET ===
-  let kirim;
-  if(TYPE=='BALL'){
-    kirim={TYPE:'BALL_8',LIST_BAK:listBak,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',BAGIAN:bagian,TGL_CLIENT:wib.tgl_id,TGL_JAM_CLIENT:wib.full_display,JAM_HP:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis,JAM_CLIENT:wib.jam,TARGET_SHEET:""};
-  } else {
-    kirim={QR_BAK:res['QR CODE BAK']||'',ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',ID_KMS:res['ID KMS']||'',ID_PACK:res['ID PACK']||'',ID_BDL:res['ID BDL']||'',BAGIAN:bagian,TGL_CLIENT:wib.tgl_id,TGL_JAM_CLIENT:wib.full_display,JAM_HP:wib.full_display,TGL_ISO:wib.iso,JAM_MILIS:wib.milis,JAM_CLIENT:wib.jam,TYPE:TYPE,TARGET_SHEET:""};
-  }
-  
-  document.getElementById('status').innerText="⏳ KIRIM... "+wib.full_display;
-  try{
-    fetch(GOOGLE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
-    document.getElementById('status').innerText="✅ TERKIRIM "+wib.full_display;
-    let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
-    let wib2=getWIBDateTime();
-    if(TYPE=='BALL'){
-      listBak.forEach(qr=>{
-        let idx=all.findIndex(d=>d.QR_BAK==qr);
-        if(idx!=-1){ all[idx].JAM_KIRIM=wib2.jam; all[idx].status='Terkirim'; }
-      });
+  // PASTIKAN fungsi  di atasnya udah async
+// contoh: async function kirimData() {
+
+let kirim;
+if (TYPE == 'BALL') {
+  kirim = {
+    TYPE: 'BALL_8',
+    LIST_BAK: listBak,
+    ID_BALL: res['ID BALL'] || '',
+    NO_BOX: res['NO BOX'] || '',
+    BAGIAN: bagian,
+    TGL_CLIENT: wib.tgl_id,
+    TGL_JAM_CLIENT: wib.full_display,
+    JAM_HP: wib.full_display,
+    TGL_ISO: wib.iso,
+    JAM_MILIS: wib.milis,
+    JAM_CLIENT: wib.jam,
+    TARGET_SHEET: ""
+  };
+} else {
+  kirim = {
+    QR_BAK: res['QR CODE BAK'] || '',
+    ID_PC: res['ID PC'] || '',
+    ID_GL: res['ID GL 1'] || '',
+    ID_GL2: res['ID GL 2'] || '',
+    ID_KMS: res['ID KMS'] || '',
+    ID_PACK: res['ID PACK'] || '',
+    ID_BDL: res['ID BDL'] || '',
+    BAGIAN: bagian,
+    TGL_CLIENT: wib.tgl_id,
+    TGL_JAM_CLIENT: wib.full_display,
+    JAM_HP: wib.full_display,
+    TGL_ISO: wib.iso,
+    JAM_MILIS: wib.milis,
+    JAM_CLIENT: wib.jam,
+    TYPE: TYPE,
+    TARGET_SHEET: ""
+  };
+}
+
+let terkirim = false;
+let percobaan = 0;
+const MAKS_PERCOBAAN = 10; // biar gak gantung selamanya
+
+while (!terkirim && percobaan < MAKS_PERCOBAAN) {
+  percobaan++;
+  document.getElementById('status').innerText = percobaan === 1 
+    ? "⏳ MENGIRIM... " + wib.full_display 
+    : `🔄 MENGIRIM ULANG (${percobaan}x)... JANGAN TUTUP HALAMAN`;
+
+  try {
+    const response = await fetch(GOOGLE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(kirim)
+    });
+
+    const hasilTeks = await response.text();
+
+    if (response.ok && !hasilTeks.toLowerCase().includes("error")) {
+      terkirim = true;
+      document.getElementById('status').innerText = "✅ TERKIRIM " + wib.full_display;
+
+      let all = JSON.parse(localStorage.getItem('riwayat_scan') || '[]');
+      let wib2 = getWIBDateTime();
+
+      if (TYPE == 'BALL') {
+        listBak.forEach(qr => {
+          let idx = all.findIndex(d => d.QR_BAK == qr);
+          if (idx != -1) { all[idx].JAM_KIRIM = wib2.jam; all[idx].status = 'Terkirim'; }
+        });
+      } else {
+        let qr = res['QR CODE BAK'] || '';
+        let idx = all.findIndex(d => d.QR_BAK == qr);
+        if (idx != -1) { all[idx].JAM_KIRIM = wib2.jam; all[idx].status = 'Terkirim'; }
+      }
+      localStorage.setItem('riwayat_scan', JSON.stringify(all));
+
+      alert('✅ Tersimpan di Sheet! JAM SCAN: ' + wib.jam);
+      location.href = 'index.html';
     } else {
-      let qr=res['QR CODE BAK']||'';
-      let idx=all.findIndex(d=>d.QR_BAK==qr);
-      if(idx!=-1){ all[idx].JAM_KIRIM=wib2.jam; all[idx].status='Terkirim'; }
+      throw new Error("Server sibuk/eror");
     }
-    localStorage.setItem('riwayat_scan',JSON.stringify(all));
-  }catch(e){
-    document.getElementById('status').innerText="⚠️ OFFLINE - RIWAYAT AMAN "+wib.full_display;
+
+  } catch (e) {
+    document.getElementById('status').innerText = "⚠️ SINYAL LAMBAT, MENCOBA LAGI...";
+    await new Promise(resolve => setTimeout(resolve, 2000));
   }
-  setTimeout(()=>{alert('✅ Tersimpan! JAM SCAN: '+wib.jam);location.href='index.html';},600);
+}
+
+if(!terkirim){
+  document.getElementById('status').innerText = "⚠️ GAGAL KIRIM 10x - RIWAYAT AMAN DI HP";
+  alert('⚠️ Gagal kirim, sinyal jelek. Riwayat aman di HP, jangan hapus. Buka lagi nanti buat kirim ulang.');
 }
  function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
@@ -329,7 +394,7 @@ updateJamLive();
 renderSteps();startCam();
 </script>
 <script>
-// AUTO UPDATE V197 - PKJ AUTO UPDATE
+// AUTO UPDATE V198 - PKJ AUTO UPDATE
 var VERSI_SERVER = "198";
 var VERSI_HP = localStorage.getItem("VERSI_APP");
 if(VERSI_HP !== VERSI_SERVER){
