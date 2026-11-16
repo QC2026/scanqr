@@ -319,6 +319,10 @@ try {
   console.error("Error kirim:", err);
   alert("Error kode kirim: " + err.message);
 }
+    } // tutup try
+} // tutup catch
+
+// <-- PASTIKAN ADA INI
  function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let wadah = document.getElementById('list-riwayat');
