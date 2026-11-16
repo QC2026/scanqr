@@ -53,6 +53,11 @@ input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;
 <div id="resultBox"><div class="card"><div id="resStep" style="color:gold;font-weight:900;font-size:14px"></div><h2 style="color:white;margin:8px 0">Hasil Scan:</h2><h1 id="resValue" style="color:#0f0;word-break:break-all;font-size:22px;background:#000;padding:14px;border-radius:8px;border:1px solid #444"></h1><div id="extraInfo" style="color:#ffeb00;margin-top:10px;font-weight:700"></div><div style="display:flex;gap:10px;margin-top:18px"><button onclick="confirmScan()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI</button><button onclick="ulangCurrent()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG</button></div></div></div>
 <div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
 <script>
+  // 0. MATIKAN SW DULU BIAR GAK BIKIN ERROR CLONE TADI
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+}
+
 function getWIBDateTime(){
   const now = new Date();
   const fmt = new Intl.DateTimeFormat('en-GB', {
@@ -315,14 +320,10 @@ try {
   
   autoKirimSampaiMasuk();
 
-} catch (err) {
-  console.error("Error kirim:", err);
-  alert("Error kode kirim: " + err.message);
+}catch(err){ console.error(err); alert("Error: "+err.message); }
 }
-    } // tutup try
-} // tutup catch
+// ===== SAMPAI SINI =====
 
-// <-- PASTIKAN ADA INI
  function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let wadah = document.getElementById('list-riwayat');
