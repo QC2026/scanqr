@@ -248,93 +248,68 @@ async function autoSave(){
   if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
 
   // === 2. KIRIM KE SHEET ===
- let kirim;
-  if (TYPE == 'BALL') {
-    kirim = {
-      TYPE: 'BALL_8',
-      LIST_BAK: listBak,
-      ID_BALL: res['ID BALL'] || '',
-      NO_BOX: res['NO BOX'] || '',
-      BAGIAN: bagian,
-      TGL_CLIENT: wib.tgl_id,
-      TGL_JAM_CLIENT: wib.full_display,
-      JAM_HP: wib.full_display,
-      TGL_ISO: wib.iso,
-      JAM_MILIS: wib.milis,
-      JAM_CLIENT: wib.jam,
-      TARGET_SHEET: ""
-    };
-  } else {
-    kirim = {
-      QR_BAK: res['QR CODE BAK'] || '',
-      ID_PC: res['ID PC'] || '',
-      ID_GL: res['ID GL 1'] || '',
-      ID_GL2: res['ID GL 2'] || '',
-      ID_KMS: res['ID KMS'] || '',
-      ID_PACK: res['ID PACK'] || '',
-      ID_BDL: res['ID BDL'] || '',
-      BAGIAN: bagian,
-      TGL_CLIENT: wib.tgl_id,
-      TGL_JAM_CLIENT: wib.full_display,
-      JAM_HP: wib.full_display,
-      TGL_ISO: wib.iso,
-      JAM_MILIS: wib.milis,
-      JAM_CLIENT: wib.jam,
-      TYPE: TYPE,
-      TARGET_SHEET: ""
-    };
+ let wib = getWIBDateTime();
+
+let kirim;
+if (TYPE == 'BALL') {
+  kirim = {
+    TYPE: 'BALL_8',
+    LIST_BAK: listBak,
+    ID_BALL: res['ID BALL'] || '',
+    NO_BOX: res['NO BOX'] || '',
+    BAGIAN: bagian,
+    TGL_CLIENT: wib.tgl_id,
+    TGL_JAM_CLIENT: wib.full_display,
+    JAM_HP: wib.full_display,
+    TGL_ISO: wib.iso,
+    JAM_MILIS: wib.milis,
+    JAM_CLIENT: wib.jam,
+    TARGET_SHEET: ""
+  };
+} else {
+  kirim = {
+    QR_BAK: res['QR CODE BAK'] || '',
+    ID_PC: res['ID PC'] || '',
+    ID_GL: res['ID GL 1'] || '',
+    ID_KMS: res['ID KMS'] || '',
+    ID_PACK: res['ID PACK'] || '',
+    ID_BDL: res['ID BDL'] || '',
+    BAGIAN: bagian,
+    TGL_CLIENT: wib.tgl_id,
+    TGL_JAM_CLIENT: wib.full_display,
+    JAM_HP: wib.full_display,
+    TGL_ISO: wib.iso,
+    JAM_MILIS: wib.milis,
+    JAM_CLIENT: wib.jam,
+    TYPE: TYPE,
+    TARGET_SHEET: ""
+  };
+}
+
+// AUTO KIRIM ULANG SAMPAI MASUK SHEET
+let percobaan = 0;
+async function autoKirimSampaiMasuk() {
+  percobaan++;
+  document.getElementById('status').innerText = percobaan === 1 ? "⏳ MENGIRIM... " + wib.full_display : `🔄 AUTO COBA LAGI (${percobaan}x)...`;
+
+  try {
+    const r = await fetch(GOOGLE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(kirim)
+    });
+    const txt = await r.text();
+    if (r.ok && !txt.toLowerCase().includes("error")) {
+      document.getElementById('status').innerText = "✅ TERKIRIM " + wib.full_display;
+      alert('✅ Masuk Sheet! ' + wib.jam);
+      location.href = 'index.html';
+    } else throw new Error("error");
+  } catch (e) {
+    document.getElementById('status').innerText = `⚠️ GAGAL, COBA LAGI 3 DETIK (${percobaan}x)`;
+    setTimeout(autoKirimSampaiMasuk, 3000);
   }
-
-  let terkirim = false;
-  let percobaan = 0;
-
-  // Terus mencoba mengirim sampai Google membalas sukses
-  while (!terkirim) {
-    percobaan++;
-    document.getElementById('status').innerText = percobaan === 1 
-      ? "⏳ MENGIRIM... " + wib.full_display 
-      : `🔄 MENGIRIM ULANG (${percobaan}x)... JANGAN TUTUP HALAMAN`;
-
-    try {
-      const response = await fetch(GOOGLE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(kirim)
-      });
-
-      const hasilTeks = await response.text();
-
-      if (response.ok && !hasilTeks.toLowerCase().includes("error")) {
-        terkirim = true; // Keluar dari perulangan karena sudah sukses
-        document.getElementById('status').innerText = "✅ TERKIRIM " + wib.full_display;
-
-        let all = JSON.parse(localStorage.getItem('riwayat_scan') || '[]');
-        let wib2 = getWIBDateTime();
-
-        if (TYPE == 'BALL') {
-          listBak.forEach(qr => {
-            let idx = all.findIndex(d => d.QR_BAK == qr);
-            if (idx != -1) { all[idx].JAM_KIRIM = wib2.jam; all[idx].status = 'Terkirim'; }
-          });
-        } else {
-          let qr = res['QR CODE BAK'] || '';
-          let idx = all.findIndex(d => d.QR_BAK == qr);
-          if (idx != -1) { all[idx].JAM_KIRIM = wib2.jam; all[idx].status = 'Terkirim'; }
-        }
-        localStorage.setItem('riwayat_scan', JSON.stringify(all));
-
-        alert('✅ Tersimpan di Sheet! JAM SCAN: ' + wib.jam);
-        location.href = 'index.html';
-      } else {
-        throw new Error("Server sibuk/eror");
-      }
-
-    } catch (e) {
-      // Jika gagal/putus koneksi, tunggu 2 detik lalu ulangi loop otomatis
-      document.getElementById('status').innerText = "⚠️ SINYAL LAMBAT, MENCOBA LAGI...";
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-  }
+}
+autoKirimSampaiMasuk();
  function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let wadah = document.getElementById('list-riwayat');
