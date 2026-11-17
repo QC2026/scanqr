@@ -47,7 +47,7 @@ body{margin:0;background:#080808;color:#ffd700;font-family:sans-serif;padding:12
 <script>
 function go(t){localStorage.setItem('scan_type',t);location.href='scan.html';}
 function keluarApp(){ if(confirm('Yakin mau keluar?')){ try{webintoapp.closeApp();return;}catch(e){} try{Android.closeApp();return;}catch(e){} try{window.close();}catch(e){} } }
-const URL_GAS="https://script.google.com/macros/s/AKfycbwma-WPVZd248l95YlKIYR-p-9mvLzXDjq11l1TFy93JJNs7QpEVp73_ECc_TqE7OUruA/exec";
+const URL_GAS="https://script.google.com/macros/s/AKfycbxeV0P-hdypgH8tcphBo-Jb54uYFf5eNj-tVNAX2MXYmI-FXez-9KM2fppjuURkDCABUg/exec";
 async function autoSync(){
   let all=JSON.parse(localStorage.getItem('riwayat')||localStorage.getItem('riwayat_scan')||'[]');
   let gagal=all.filter(d=>d.status!='sukses');
@@ -64,7 +64,7 @@ window.addEventListener('load', autoSync);
 setInterval(autoSync, 15000);
 </script>
   <script>
-var VERSI_SERVER = "200";
+var VERSI_SERVER = "202";
 var VERSI_HP = localStorage.getItem("VERSI_APP");
 if(VERSI_HP !== VERSI_SERVER){
   localStorage.clear();
