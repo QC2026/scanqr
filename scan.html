@@ -327,6 +327,13 @@ try {
       if (r.ok) {
         if(statusEl) statusEl.innerText = "✅ TERKIRIM " + wib.full_display;
         alert('✅ Masuk Sheet! ' + wib.jam);
+        //===STATUS JADI TERKIRIM===
+        try{
+          let all2 = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
+          all2.forEach(d => { if(d.JAM_SCAN == wib.jam) d.status = 'Terkirim'; });
+          localStorage.setItem('riwayat_scan', JSON.stringify(all2));
+          localStorage.setItem('riwayat', JSON.stringify(all2));
+          }catch(e){}
         location.href = 'index.html';
       } else throw new Error();
     } catch (e) {
