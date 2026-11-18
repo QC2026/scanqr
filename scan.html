@@ -58,11 +58,22 @@ input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;
 </div>
 <div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
 <script>
-  // 0. MATIKAN SW DULU BIAR GAK BIKIN ERROR CLONE TADI
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // cek ada update baru gak
+    reg.onupdatefound = () => {
+      const newWorker = reg.installing;
+      newWorker.onstatechange = () => {
+        if (newWorker.state === 'installed') {
+          // ada versi baru, reload biar kamera baru ke pake
+          if (navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        }
+      };
+    };
+  });
 }
-
 function getWIBDateTime(){
   const now = new Date();
   const fmt = new Intl.DateTimeFormat('en-GB', {
