@@ -132,58 +132,37 @@ function updateAntreanBox(){
     let pending=new Set(all.filter(d=>d.status!=='Terkirim').map(d=>d.BATCH_ID)).size;
     let terkirim=new Set(all.filter(d=>d.status==='Terkirim').map(d=>d.BATCH_ID)).size;
     let el=document.getElementById('antreanBox');
-    if(el) el.innerText=`📤 ANTREAN: ${pending} | ✅ TERKIRIM: ${terkirim} | ${pending>0?'⏳ LAGI NGIRIM NENG MBURI...':'✅ KABEH WES MELEBU'}`;
+    if(el) el.innerText=`📤 ANTREAN: ${pending} | ✅ TERKIRIM: ${terkirim} | ${pending>0?'⏳ LAGI NGIRIM ...':'✅ SUDAH SEMUA'}`;
   }catch(e){}
 }
-async function processQueue(){
+ async function processQueue(){
   if(isMengirimAntrean) return;
   let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
+  let bersih = all.filter(d => d.QR_BAK && d.QR_BAK.trim() !== "");
+  if(bersih.length !== all.length){
+    localStorage.setItem('riwayat_scan', JSON.stringify(bersih));
+    localStorage.setItem('riwayat', JSON.stringify(bersih));
+    all = bersih;
+  }
   let pendingBatch=all.find(d=>d.status!=='Terkirim');
   if(!pendingBatch){ updateAntreanBox(); return; }
-  isMengirimAntrean=true;
-  let batchId=pendingBatch.BATCH_ID;
-  let items=all.filter(d=>d.BATCH_ID===batchId);
+  let items=all.filter(d=>d.BATCH_ID===pendingBatch.BATCH_ID);
   let first=items[0];
-  let wib2=getWIBDateTime();
-  let kirim;
-  // Cek TYPE dari data sing ke-save, dudu TYPE saiki tok - ben BALL & GL ora ketuker
-  let isBall = (first.ID_BALL!==undefined || (first.QR_BAK && items.length>1) || first.BAGIAN==='BALL' || TYPE==='BALL') && !first.ID_GL && !first.ID_PC;
-  // Cara paling aman: cek jumlah item + field
-  if(items.length>1 || (first.ID_BALL)){
-    let listBakKirim=items.map(d=>d.QR_BAK);
-    kirim={ TYPE:'BALL_8', LIST_BAK:listBakKirim, ID_BALL:first.ID_BALL||'', NO_BOX:first.NO_BOX||'', BAGIAN:first.BAGIAN||TYPE, TGL_CLIENT:first.TGL_CLIENT||wib2.tgl_id, TGL_JAM_CLIENT:first.TGL_JAM_CLIENT||wib2.full_display, JAM_HP:wib2.full_display, TGL_ISO:wib2.iso, JAM_MILIS:wib2.milis, JAM_CLIENT:wib2.jam, TARGET_SHEET:"", BATCH_ID:batchId };
-  } else {
-    // GL / KMS / PACK / BDL - 1 QR per batch
-    kirim={ QR_BAK:first.QR_BAK||'', ID_PC:first.ID_PC||'', ID_GL:first.ID_GL||'', ID_GL2:first.ID_GL2||'', ID_KMS:first.ID_KMS||'', ID_PACK:first.ID_PACK||'', ID_BDL:first.ID_BDL||'', BAGIAN:first.BAGIAN||TYPE, TGL_CLIENT:first.TGL_CLIENT||wib2.tgl_id, TGL_JAM_CLIENT:first.TGL_JAM_CLIENT||wib2.full_display, JAM_HP:wib2.full_display, TGL_ISO:wib2.iso, JAM_MILIS:wib2.milis, JAM_CLIENT:wib2.jam, TYPE:(first.BAGIAN||TYPE), TARGET_SHEET:"", BATCH_ID:batchId };
-    // GL butuh ID_GL2 khusus - mapping dari penyimpanan lama
-    if(first.ID_GL2) kirim.ID_GL2=first.ID_GL2;
-  }
-  let statusEl=document.getElementById('status');
-  if(statusEl) statusEl.innerText="⏳ NGIRIM NENG MBURI... Antrean: "+batchId;
-  try{
-    const r=await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
-    const txt=await r.text();
-    let txtUp=(txt||"").toUpperCase();
-    if(!r.ok || txtUp.includes("ERROR") || txtUp.includes("GAGAL") || txtUp.includes("FAILED")) throw new Error("Sheet nolak: "+txt);
-    try{ let j=JSON.parse(txt); if(j.status && j.status.toUpperCase()!=="OK" && j.status.toUpperCase()!=="SUCCESS") throw new Error("Sheet: "+txt); }catch(e){ if(e.message && e.message.startsWith("Sheet:")) throw e; }
-    // SUKSES - tandai Terkirim
-    let wibKirim=getWIBDateTime();
-    let all2=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
-    all2.forEach(d=>{ if(d.BATCH_ID===batchId){ d.status='Terkirim'; d.JAM_KIRIM=wibKirim.jam; }});
-    localStorage.setItem('riwayat_scan',JSON.stringify(all2));
-    localStorage.setItem('riwayat',JSON.stringify(all2));
-    if(statusEl) statusEl.innerText="✅ 1 BATCH MELEBU! Lanjut scan...";
+  if(!first || !first.QR_BAK){
+    let sisa=all.filter(d=>d.BATCH_ID!==pendingBatch.BATCH_ID);
+    localStorage.setItem('riwayat_scan', JSON.stringify(sisa));
     isMengirimAntrean=false;
-    updateAntreanBox();
     setTimeout(processQueue,500);
-  }catch(e){
-    console.log("Antrean gagal, coba lagi 3 detik:",e);
-    if(statusEl) statusEl.innerText=`⚠️ Sinyal elek, coba lagi 3 detik... Data aman neng Antrean`;
-    isMengirimAntrean=false;
-    updateAntreanBox();
-    setTimeout(processQueue,3000);
+    return;
   }
-}
+  // BALL wajib ono ID_BALL + NO_BOX, nek ora ono berarti durung rampung scan, ojo dikirim!
+  if(first.ID_BALL !== undefined && (!first.ID_BALL || !first.NO_BOX)){
+    console.log("Batch blm lengkap, skip:", pendingBatch.BATCH_ID);
+    isMengirimAntrean=false;
+    return;
+  }
+  // ... lanjut kirim , TANPA alert ...
+} 
 function renderSteps(){let h='';if(TYPE=='BALL'){if(cur==0)h+=`<span class="step active">▶ QR BAK [${listBak.length}/8]</span>`;else h+=`<span class="step done">✓ QR BAK [8/8]</span>`;flow.slice(1).forEach((s,i)=>{let idx=i+1;let cls=idx<cur?'done':idx==cur?'active':'wait';h+=`<span class="step ${cls}">${idx<cur?'✓ ':idx==cur?'▶ ':''}${s}</span>`});document.getElementById('step-info').innerText=cur==0?`Siap Scan [${listBak.length}/8]`:flow[cur];document.getElementById('list-preview').style.display='block'}else{flow.forEach((s,i)=>{let cls=i<cur?'done':i==cur?'active':'wait';h+=`<span class="step ${cls}">${i<cur?'✓ ':i==cur?'▶ ':''}${s}</span>`});document.getElementById('step-info').innerText=flow[cur]||'Siap Scan';document.getElementById('list-preview').style.display='none'}document.getElementById('steps').innerHTML=h}
 function onScanSuccess(decoded){if(isPause)return;const now=Date.now();if(now-lastScanTime<800)return;lastScanTime=now;decoded=decoded.trim().toUpperCase();let stepSaiki=flow[cur]||TYPE;let cek=validatePager(decoded,stepSaiki);if(cek){document.getElementById('status').innerText='⛔ '+cek;return}if(TYPE=='BALL'&&cur==0){if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!';return}listBak.push(decoded);document.getElementById('list-preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');renderSteps();document.getElementById('status').innerText=`✅ Masuk ${listBak.length}/8`;if(listBak.length<8)return;document.getElementById('list8Preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');document.getElementById('verify8Box').style.display='block';isPause=true;try{html5QrcodeScanner.pause(true)}catch(e){}return}isPause=true;tempScan=decoded;try{html5QrcodeScanner.pause(true)}catch(e){}document.getElementById('resStep').innerText=flow[cur];document.getElementById('resValue').innerText=decoded;document.getElementById('extraInfo').innerText='';if(TYPE=='BDL'&&flow[cur]=='ID BDL'){let c=hitungBDL(decoded)+1;document.getElementById('extraInfo').innerText=`🔢 BDL ${decoded} `;document.getElementById('bdlCounter').style.display='block';document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x hari ini`}document.getElementById('resultBox').style.display='block'}
 function confirm8(){document.getElementById('verify8Box').style.display='none';cur=1;renderSteps();document.getElementById('status').innerText='8 BAK OK! Scan ID BALL';isPause=false;try{html5QrcodeScanner.resume()}catch(e){}}
