@@ -135,6 +135,7 @@ function updateAntreanBox(){
   }catch(e){}
 }
  async function processQueue(){
+   if(!navigator.online){updateAntreanBox);return;}
   if(isMengirimAntrean) return;
   let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let bersih = all.filter(d => d.QR_BAK && d.QR_BAK.trim() !== "");
@@ -280,7 +281,7 @@ updateJamLive();
 renderSteps();startCam();
 updateAntreanBox();
 setTimeout(processQueue,1000);
-setInterval(processQueue,5000);
+setInterval(()=>{if(navigator.online) processQueue(true);},5000);
 </script>
 <script>
 // AUTO UPDATE V204 - BORONGAN ANTREAN
