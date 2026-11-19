@@ -131,10 +131,10 @@ function updateAntreanBox(){
     let pending=new Set(all.filter(d=>d.status!=='Terkirim').map(d=>d.BATCH_ID)).size;
     let terkirim=new Set(all.filter(d=>d.status==='Terkirim').map(d=>d.BATCH_ID)).size;
     let el=document.getElementById('antreanBox');
-    if(el) el.innerText=`📤 ANTREAN: ${pending} | ✅ TERKIRIM: ${terkirim} | ${pending>0?'⏳ LAGI NGIRIM ...':'✅ SUDAH SEMUA'}`;
+    if(el) el.innerText=`📤 ANTREAN: ${pending} | ✅ TERKIRIM: ${terkirim}`;
   }catch(e){}
 }
- async function processQueue(){
+  async function processQueue(silent=false){
    if(!navigator.online){updateAntreanBox);return;}
   if(isMengirimAntrean) return;
   let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
