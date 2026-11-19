@@ -135,7 +135,7 @@ function updateAntreanBox(){
   }catch(e){}
 }
   async function processQueue(silent=false){
-   if(!navigator.online){updateAntreanBox();return;}
+   if(!navigator.online)return;
   if(isMengirimAntrean) return;
   let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let bersih = all.filter(d => d.QR_BAK && d.QR_BAK.trim() !== "");
