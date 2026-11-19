@@ -64,10 +64,18 @@ window.addEventListener('load', autoSync);
 setInterval(autoSync, 15000);
 </script>
   <script>
-var VERSI_SERVER = "202";
+    var VERSI_SERVER = "203";
 var VERSI_HP = localStorage.getItem("VERSI_APP");
 if(VERSI_HP !== VERSI_SERVER){
+  var _pendingSave = localStorage.getItem("riwayat_scan");
+  var _riwayatSave = localStorage.getItem("riwayat");
+  var _bagianSave = localStorage.getItem("bagian");
+  var _typeSave = localStorage.getItem("scan_type");
   localStorage.clear();
+  if(_pendingSave) localStorage.setItem("riwayat_scan", _pendingSave);
+  if(_riwayatSave) localStorage.setItem("riwayat", _riwayatSave);
+  if(_bagianSave) localStorage.setItem("bagian", _bagianSave);
+  if(_typeSave) localStorage.setItem("scan_type", _typeSave);
   localStorage.setItem("VERSI_APP", VERSI_SERVER);
   window.location.href = window.location.href.split('?')[0] + "?v=" + Date.now();
 }
