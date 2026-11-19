@@ -60,12 +60,10 @@ input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
-    // cek ada update baru gak
     reg.onupdatefound = () => {
       const newWorker = reg.installing;
       newWorker.onstatechange = () => {
         if (newWorker.state === 'installed') {
-          // ada versi baru, reload biar kamera baru ke pake
           if (navigator.serviceWorker.controller) {
             window.location.reload();
           }
@@ -83,30 +81,19 @@ function getWIBDateTime(){
     hour12:false
   });
   const parts = fmt.formatToParts(now).reduce((a,p)=>{a[p.type]=p.value; return a;},{});
-  const tgl_id = `${parts.day}/${parts.month}/${parts.year}`; // 05/11/2026 - FIX dd/MM
+  const tgl_id = `${parts.day}/${parts.month}/${parts.year}`;
   const jam = `${parts.hour}:${parts.minute}:${parts.second}`.replace(/\./g,':').replace(/;/g,':');
   const full_display = `${tgl_id} ${jam} WIB`;
-  return {
-    tgl_id: tgl_id,
-    jam: jam,
-    full_display: full_display,
-    iso: now.toISOString(), 
-    milis: now.getTime() 
-  };
+  return { tgl_id: tgl_id, jam: jam, full_display: full_display, iso: now.toISOString(), milis: now.getTime() };
 }
-function hitungBDL(id){if(!id)return 0;try{let all=JSON.parse(localStorage.getItem('riwayat')||'[]');let todayID=new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});return all.filter(d=>{let w=(d.waktu||'')+' '+(d.TGL_CLIENT||'');return w.includes(todayID)&&(d.ID_BDL||'').toUpperCase()==id.toUpperCase()}).length}catch(e){return 0}}
+// FIX: hitungBDL pake riwayat_scan (dudu riwayat lawas)
+function hitungBDL(id){if(!id)return 0;try{let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');let todayID=new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'});return all.filter(d=>{let w=(d.waktu||'')+' '+(d.TGL_CLIENT||'');return w.includes(todayID)&&(d.ID_BDL||'').toUpperCase()==id.toUpperCase()}).length}catch(e){return 0}}
 let lastScan="";let lastTime=0;function cegahDoubleScan(v){let now=Date.now();if(v===lastScan&&(now-lastTime)<3000)return"Sabar,ojo di scan dobel!";lastScan=v;lastTime=now;return""}
 function validatePager(value, step){
   if(!value || !step) return "STEP/VALUE KOSONG!";
   value = value.trim().toUpperCase();
   step = step.toString().toUpperCase().replace(/[\s_-]/g,"");
-
-  try{
-    let d = cegahDoubleScan(value);
-    if(d) return d
-  }catch(e){}
-
-  // 1. VALIDASI BAK / QR BAK
+  try{ let d = cegahDoubleScan(value); if(d) return d }catch(e){}
   if(step.includes('BAK') || step === 'QR' || step.includes('QRBAK')){
     if(/^\d+$/.test(value)) return "SALAH! INI BUKAN QR BAK !";
     if(/^\d{5,6}$/.test(value)) return "SALAH! INI NO ID ANGKA TOK!";
@@ -117,41 +104,26 @@ function validatePager(value, step){
     if(/^[A-Z]+\d*-\d+$/.test(value)) return "";
     return "SALAH! FORMAT HARUS G1-001 ATAU BAK-1234!";
   }
-
-  // 2. VALIDASI ID KMS, PACK, BDL, GL, PC (angka 5-6 digit)
   if(step.includes('IDPC') || step.includes('IDGL') || step.includes('IDKMS') || step.includes('IDPACK') || step.includes('IDBDL')){
     if(value.includes('-') || value.includes('BAK')) return "SALAH! INI QR BAK, BUKAN ID!";
     if(/[A-Z]/.test(value)) return "SALAH! INI QR BAK, BUKAN ID!";
     if(!/^\d{5,6}$/.test(value)) return "SALAH! ID HARUS 5-6 ANGKA!";
     return "";
   }
-
-  // 3. VALIDASI KHUSUS BALL & BOX (SUDAH DIHAPUS YANG NGACO, JADI KETAT)
   if(step.includes('IDBALL') || step.includes('BALL') || step.includes('BOX')){
-    // Format bener: FAUZIAH-13, FAUZAN-21, EKO-12, BOX-027
-    
-    if (/^[A-Z]+-\d{1,4}$/.test(value)) return ""; // FAUZIAH-13
-    if (/^BOX-\d{1,4}$/.test(value)) return ""; // BOX-027 -> INI KHUSUS NO BOX WAJIB BOX-
-
-    // Kalo NO BOX gak ada BOX- nya, TOLAK
-    if(step.includes('BOX')){
-      return "SALAH! NO BOX WAJIB BOX-...! CONTOH: BOX-027";
-    }
-
+    if (/^[A-Z]+-\d{1,4}$/.test(value)) return "";
+    if (/^BOX-\d{1,4}$/.test(value)) return "";
+    if(step.includes('BOX')){ return "SALAH! NO BOX WAJIB BOX-...! CONTOH: BOX-027"; }
     return "SALAH! FORMAT HARUS NAMA-13 ATAU BOX-027! CONTOH: FAUZIAH-13";
   }
-
   return "";
 }
-// Helper biar gak double scan (kalo ada)
-function cegahDoubleScan(val){
-  // kalo gak ada function ini, biarin aja return kosong
-  return "";
-}
+// FIX: fungsi kembar sing ngisor TAK BUANG - iki sing marai double scan mati mau
 const GOOGLE_URL="https://script.google.com/macros/s/AKfycbxeV0P-hdypgH8tcphBo-Jb54uYFf5eNj-tVNAX2MXYmI-FXez-9KM2fppjuURkDCABUg/exec";
 const TYPE=(localStorage.getItem('scan_type')||'BALL').toUpperCase();document.getElementById('tipe').innerText='SCAN: '+TYPE;
 const FLOWS={'GL':['QR CODE BAK','ID PC','ID GL 1','ID GL 2'],'KMS':['QR CODE BAK','ID KMS'],'PACK':['QR CODE BAK','ID PACK'],'BDL':['QR CODE BAK','ID BDL'],'BALL':['QR CODE BAK','ID BALL','NO BOX']};
 let flow=FLOWS[TYPE]||FLOWS['BALL'];let cur=0;let res={};let listBak=[];let html5QrcodeScanner;let lastScanTime=0;let isPause=false;let tempScan="";let torchOn=false;
+let currentBatchId="";
 function renderSteps(){let h='';if(TYPE=='BALL'){if(cur==0)h+=`<span class="step active">▶ QR BAK [${listBak.length}/8]</span>`;else h+=`<span class="step done">✓ QR BAK [8/8]</span>`;flow.slice(1).forEach((s,i)=>{let idx=i+1;let cls=idx<cur?'done':idx==cur?'active':'wait';h+=`<span class="step ${cls}">${idx<cur?'✓ ':idx==cur?'▶ ':''}${s}</span>`});document.getElementById('step-info').innerText=cur==0?`Siap Scan [${listBak.length}/8]`:flow[cur];document.getElementById('list-preview').style.display='block'}else{flow.forEach((s,i)=>{let cls=i<cur?'done':i==cur?'active':'wait';h+=`<span class="step ${cls}">${i<cur?'✓ ':i==cur?'▶ ':''}${s}</span>`});document.getElementById('step-info').innerText=flow[cur]||'Siap Scan';document.getElementById('list-preview').style.display='none'}document.getElementById('steps').innerHTML=h}
 function onScanSuccess(decoded){if(isPause)return;const now=Date.now();if(now-lastScanTime<800)return;lastScanTime=now;decoded=decoded.trim().toUpperCase();let stepSaiki=flow[cur]||TYPE;let cek=validatePager(decoded,stepSaiki);if(cek){document.getElementById('status').innerText='⛔ '+cek;return}if(TYPE=='BALL'&&cur==0){if(listBak.includes(decoded)){document.getElementById('status').innerText='⚠️ QR udah ada!';return}listBak.push(decoded);document.getElementById('list-preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');renderSteps();document.getElementById('status').innerText=`✅ Masuk ${listBak.length}/8`;if(listBak.length<8)return;document.getElementById('list8Preview').innerHTML=listBak.map((x,i)=>`<div>${i+1}. ${x}</div>`).join('');document.getElementById('verify8Box').style.display='block';isPause=true;try{html5QrcodeScanner.pause(true)}catch(e){}return}isPause=true;tempScan=decoded;try{html5QrcodeScanner.pause(true)}catch(e){}document.getElementById('resStep').innerText=flow[cur];document.getElementById('resValue').innerText=decoded;document.getElementById('extraInfo').innerText='';if(TYPE=='BDL'&&flow[cur]=='ID BDL'){let c=hitungBDL(decoded)+1;document.getElementById('extraInfo').innerText=`🔢 BDL ${decoded} `;document.getElementById('bdlCounter').style.display='block';document.getElementById('bdlCounter').innerText=`🔢 BDL ${decoded} = ${c}x hari ini`}document.getElementById('resultBox').style.display='block'}
 function confirm8(){document.getElementById('verify8Box').style.display='none';cur=1;renderSteps();document.getElementById('status').innerText='8 BAK OK! Scan ID BALL';isPause=false;try{html5QrcodeScanner.resume()}catch(e){}}
@@ -164,40 +136,10 @@ function resetScan(){cur=0;res={};listBak=[];lastScanTime=0;isPause=false;tempSc
 async function startCam(){
   html5QrcodeScanner = new Html5Qrcode("reader");
  const config = {fps:15, qrbox:{width:280, height:280}};
-  // Coba 1: Kamera belakang (buat HP)
-  try{
-    await html5QrcodeScanner.start({facingMode:{exact:"environment"}}, config, onScanSuccess, ()=>{});
-    document.getElementById('status').innerText="✅ Kamera belakang aktif";
-    setTimeout(()=>setZoom(2.5),600);
-    return;
-  }catch(e){}
-
-  // Coba 2: Kamera belakang biasa
-  try{
-    await html5QrcodeScanner.start({facingMode:"environment"}, config, onScanSuccess, ()=>{});
-    document.getElementById('status').innerText="✅ Kamera belakang aktif";
-    setTimeout(()=>setZoom(2.5),600);
-    return;
-  }catch(e){}
-
-  // Coba 3: Kamera depan (buat LAPTOP )
-  try{
-    await html5QrcodeScanner.start({facingMode:"user"}, config, onScanSuccess, ()=>{});
-    document.getElementById('status').innerText="✅ Kamera depan aktif (mode Laptop)";
-    return;
-  }catch(e){}
-
-  // Coba 4: Ambil kamera apa aja yang ada
-  try{
-    let cams = await Html5Qrcode.getCameras();
-    if(cams && cams.length){
-    
-      await html5QrcodeScanner.start(cams[0].id, config, onScanSuccess, ()=>{});
-      document.getElementById('status').innerText="✅ Kamera aktif: "+cams[0].label;
-      return;
-    }
-  }catch(e){}
-
+  try{ await html5QrcodeScanner.start({facingMode:{exact:"environment"}}, config, onScanSuccess, ()=>{}); document.getElementById('status').innerText="✅ Kamera belakang aktif"; setTimeout(()=>setZoom(2.5),600); return; }catch(e){}
+  try{ await html5QrcodeScanner.start({facingMode:"environment"}, config, onScanSuccess, ()=>{}); document.getElementById('status').innerText="✅ Kamera belakang aktif"; setTimeout(()=>setZoom(2.5),600); return; }catch(e){}
+  try{ await html5QrcodeScanner.start({facingMode:"user"}, config, onScanSuccess, ()=>{}); document.getElementById('status').innerText="✅ Kamera depan aktif (mode Laptop)"; return; }catch(e){}
+  try{ let cams = await Html5Qrcode.getCameras(); if(cams && cams.length){ await html5QrcodeScanner.start(cams[0].id, config, onScanSuccess, ()=>{}); document.getElementById('status').innerText="✅ Kamera aktif: "+cams[0].label; return; } }catch(e){}
   document.getElementById('status').innerText="❌ Kamera diblokir - cek izin kamera di Chrome";
 }
 function setZoom(z){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.zoom){track.applyConstraints({advanced:[{zoom:Math.min(z,cap.zoom.max)}]})}}catch(e){}}
@@ -207,208 +149,116 @@ async function gantiKamera(){try{await html5QrcodeScanner.stop()}catch{}startCam
 async function autoSave(){
   let bagian=localStorage.getItem('bagian')||TYPE;
   const wib=getWIBDateTime();
-  let tgl_input=wib.tgl_id; 
-  
-  // === 1. SIMPAN RIWAYAT OFFLINE DULU ===
+  let tgl_input=wib.tgl_id;
+  currentBatchId='B'+wib.milis+'-'+Math.floor(Math.random()*1000);
   let hariIni = wib.tgl_id;
   try{
     let all=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
-    
     if(TYPE=='BALL'){
       listBak.forEach(qr=>{
         if(!qr) return;
-        let sudah = all.some(d=>d.QR_BAK==qr && d.TANGGAL==hariIni && d.status=='Terkirim');
-        if(sudah){
-          console.log('QR sudah ada hari ini tapi tetep dikirim:', qr);
-        }
-        let idx=all.findIndex(d=>d.QR_BAK==qr);
+        let idx=all.findIndex(d=>d.QR_BAK==qr && d.BATCH_ID==currentBatchId);
         if(idx==-1){
-          all.push({
-            QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'',
-            BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,
-            JAM_SCAN:wib.jam,JAM_KIRIM:'-',
-            waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,
-            status:'Lokal (Pending)'
-          });
-        } else {
-          all[idx].ID_BALL=res['ID BALL']||''; all[idx].NO_BOX=res['NO BOX']||'';
-          all[idx].JAM_SCAN=wib.jam;
-          all[idx].status='Lokal (Pending)';
+          all.push({ BATCH_ID:currentBatchId, QR_BAK:qr,ID_BALL:res['ID BALL']||'',NO_BOX:res['NO BOX']||'', BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id, JAM_SCAN:wib.jam,JAM_KIRIM:'-', waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display, status:'Lokal (Pending)' });
         }
       });
     } else {
       let qr=res['QR CODE BAK']||'';
-      let sudah = all.some(d=>d.QR_BAK==qr && d.TANGGAL==hariIni && d.status=='Terkirim' && !d.ID_BALL);
-      if(sudah){
-        console.log('QR sudah ada hari ini:', qr);
-      }
-      let idx=all.findIndex(d=>d.QR_BAK==qr && !d.ID_BALL);
-      if(idx==-1){
-        all.push({
-          QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'',
-          ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'',
-          BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id,
-          JAM_SCAN:wib.jam,JAM_KIRIM:'-',
-          waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display,
-          status:'Lokal (Pending)'
-        });
-      } else {
-        if(TYPE=='KMS') all[idx].ID_KMS=res['ID KMS']||'';
-        if(TYPE=='PACK') all[idx].ID_PACK=res['ID PACK']||'';
-        if(TYPE=='BDL') all[idx].ID_BDL=res['ID BDL']||'';
-        all[idx].JAM_SCAN=wib.jam;
-        all[idx].status='Lokal (Pending)';
-      }
+      all.push({ BATCH_ID:currentBatchId, QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'', ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'', BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id, JAM_SCAN:wib.jam,JAM_KIRIM:'-', waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display, status:'Lokal (Pending)' });
     }
     localStorage.setItem('riwayat_scan',JSON.stringify(all));
-    localStorage.removeItem('riwayat');
-  }catch(err){
-    alert("Gagal simpen riwayat: "+err);
-    return;
-  }
-
+  }catch(err){ alert("Gagal simpen riwayat: "+err); return; }
   if(html5QrcodeScanner){try{await html5QrcodeScanner.stop()}catch(e){}}
-
-  // === 2. KIRIM KE SHEET ===
-  // JANGAN LANGSUNG fetch, TAPI BUNGKUS DULU BIAR GAK ERROR
 try {
-  let wib = getWIBDateTime();
-
+  let wib2 = getWIBDateTime();
   let kirim;
   if (TYPE == 'BALL') {
-    kirim = {
-      TYPE: 'BALL_8',
-      LIST_BAK: listBak,
-      ID_BALL: res['ID BALL'] || '',
-      NO_BOX: res['NO BOX'] || '',
-      BAGIAN: bagian,
-      TGL_CLIENT: wib.tgl_id,
-      TGL_JAM_CLIENT: wib.full_display,
-      JAM_HP: wib.full_display,
-      TGL_ISO: wib.iso,
-      JAM_MILIS: wib.milis,
-      JAM_CLIENT: wib.jam,
-      TARGET_SHEET: ""
-    };
+    kirim = { TYPE: 'BALL_8', LIST_BAK: listBak, ID_BALL: res['ID BALL'] || '', NO_BOX: res['NO BOX'] || '', BAGIAN: bagian, TGL_CLIENT: wib2.tgl_id, TGL_JAM_CLIENT: wib2.full_display, JAM_HP: wib2.full_display, TGL_ISO: wib2.iso, JAM_MILIS: wib2.milis, JAM_CLIENT: wib2.jam, TARGET_SHEET: "", BATCH_ID: currentBatchId };
   } else {
-    kirim = {
-      QR_BAK: res['QR CODE BAK'] || '',
-      ID_PC: res['ID PC'] || '',
-      ID_GL: res['ID GL 1'] || '',
-      ID_KMS: res['ID KMS'] || '',
-      ID_PACK: res['ID PACK'] || '',
-      ID_BDL: res['ID BDL'] || '',
-      BAGIAN: bagian,
-      TGL_CLIENT: wib.tgl_id,
-      TGL_JAM_CLIENT: wib.full_display,
-      JAM_HP: wib.full_display,
-      TGL_ISO: wib.iso,
-      JAM_MILIS: wib.milis,
-      JAM_CLIENT: wib.jam,
-      TYPE: TYPE,
-      TARGET_SHEET: ""
-    };
+    kirim = { QR_BAK: res['QR CODE BAK'] || '', ID_PC: res['ID PC'] || '', ID_GL: res['ID GL 1'] || '', ID_KMS: res['ID KMS'] || '', ID_PACK: res['ID PACK'] || '', ID_BDL: res['ID BDL'] || '', BAGIAN: bagian, TGL_CLIENT: wib2.tgl_id, TGL_JAM_CLIENT: wib2.full_display, JAM_HP: wib2.full_display, TGL_ISO: wib2.iso, JAM_MILIS: wib2.milis, JAM_CLIENT: wib2.jam, TYPE: TYPE, TARGET_SHEET: "", BATCH_ID: currentBatchId };
   }
-
   let percobaan = 0;
   const statusEl = document.getElementById('status');
-
   async function autoKirimSampaiMasuk() {
     percobaan++;
-    if(statusEl) statusEl.innerText = percobaan === 1 ? "⏳ MENGIRIM... " + wib.full_display : `🔄 COBA LAGI (${percobaan}x)...`;
-
+    if(statusEl) statusEl.innerText = percobaan === 1 ? "⏳ MENGIRIM... " + wib2.full_display : `🔄 COBA LAGI (${percobaan}x)...`;
     try {
-      const r = await fetch(GOOGLE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(kirim)
-      });
+      const r = await fetch(GOOGLE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(kirim) });
       const txt = await r.text();
-      if (r.ok) {
-        if(statusEl) statusEl.innerText = "✅ TERKIRIM " + wib.full_display;
-        alert('✅ Masuk Sheet! ' + wib.jam);
-        //===STATUS JADI TERKIRIM===
-        try{
-          let all2 = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
-          all2.forEach(d => { if(d.JAM_SCAN == wib.jam) d.status = 'Terkirim'; });
-          localStorage.setItem('riwayat_scan', JSON.stringify(all2));
-          localStorage.setItem('riwayat', JSON.stringify(all2));
-          }catch(e){}
-        location.href = 'index.html';
-      } else throw new Error();
+      console.log("BALASAN SHEET:", txt);
+      // FIX: ojo percoyo r.ok tok, cek balasan e
+      let txtUp = (txt||"").toUpperCase();
+      if(!r.ok || txtUp.includes("ERROR") || txtUp.includes("GAGAL") || txtUp.includes("FAILED")){
+        throw new Error("Sheet nolak: "+txt);
+      }
+      // Nek server mbales JSON, cek status e
+      try{ let j=JSON.parse(txt); if(j.status && j.status.toUpperCase()!=="OK" && j.status.toUpperCase()!=="SUCCESS"){ throw new Error("Sheet: "+txt); } }catch(e){ if(e.message && e.message.startsWith("Sheet:")) throw e; }
+      if(statusEl) statusEl.innerText = "✅ TERKIRIM " + wib2.full_display;
+      alert('✅ Masuk Sheet! ' + wib2.jam);
+      try{
+        let wibKirim = getWIBDateTime();
+        let all2 = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
+        // FIX: pake BATCH_ID, dudu JAM tok - ben ora ketuker karo PKJ liyane
+        all2.forEach(d => { if(d.BATCH_ID == currentBatchId){ d.status = 'Terkirim'; d.JAM_KIRIM = wibKirim.jam; } });
+        localStorage.setItem('riwayat_scan', JSON.stringify(all2));
+        localStorage.setItem('riwayat', JSON.stringify(all2));
+      }catch(e){}
+      location.href = 'index.html';
     } catch (e) {
-      if(statusEl) statusEl.innerText = `⚠️ GAGAL, COBA LAGI 3 DETIK (${percobaan}x)`;
+      if(statusEl) statusEl.innerText = `⚠️ GAGAL, COBA LAGI 3 DETIK (${percobaan}x) - Data aman neng Pending`;
       setTimeout(autoKirimSampaiMasuk, 3000);
     }
   }
-  
   autoKirimSampaiMasuk();
-
 }catch(err){ console.error(err); alert("Error: "+err.message); }
 }
-// ===== SAMPAI SINI =====
-
- function renderRiwayat(){
+function parseTanggalID(tglStr, jamStr){
+  try{ let p=(tglStr||'').split('/'); if(p.length!=3) return NaN; let j=(jamStr||'00:00:00').split(':'); return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]), parseInt(j[0]||0), parseInt(j[1]||0)).getTime(); }catch(e){ return NaN; }
+}
+function renderRiwayat(){
   let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
   let wadah = document.getElementById('list-riwayat');
   if(!wadah) return;
-
-  // === TAMBAHAN RESET 1 MINGGU - TARO DI SINI ===
   let sekarang = Date.now();
   let seminggu = 7 * 24 * 60 * 60 * 1000;
   all = all.filter(r => {
-    let tgl = new Date(r.TANGGAL + ' ' + (r.JAM_SCAN||'00:00')).getTime();
-    if(isNaN(tgl)) return true; // kalau tanggal error, biarin aja
+    let tgl = parseTanggalID(r.TANGGAL, r.JAM_SCAN);
+    if(isNaN(tgl)) return true;
     return (sekarang - tgl) < seminggu;
   });
-  // simpan lagi yang sudah ke filter 1 minggu
   localStorage.setItem('riwayat_scan', JSON.stringify(all));
-  // === SELESAI TAMBAHAN ===
-
-  if(all.length==0){
-    wadah.innerHTML = '<div style="text-align:center;padding:20px">Belum ada scan hari ini (7 hari terakhir)</div>';
-    return;
-  }
-
+  if(all.length==0){ wadah.innerHTML = '<div style="text-align:center;padding:20px">Belum ada scan hari ini (7 hari terakhir)</div>'; return; }
   let html = '';
   all.forEach(r=>{
     let warna = r.status=='Terkirim' ? '#d4edda' : '#fff3cd';
     let icon = r.status=='Terkirim' ? '✅' : '⏳';
     let jamKirim = r.JAM_KIRIM && r.JAM_KIRIM!='-' ? r.JAM_KIRIM : 'Belum kekirim';
-    
-    html += `
-      <div style="background:${warna};margin:5px 0;padding:10px;border-radius:8px;border-left:4px solid ${r.status=='Terkirim'?'green':'orange'}">
-        <div style="font-weight:bold">${icon} QR: ${r.QR_BAK}</div>
-        <div style="font-size:12px;color:#333">
-          📅 ${r.TANGGAL} | 
-          📷 SCAN: <b>${r.JAM_SCAN||'-'}</b> | 
-          📤 KIRIM: <b>${jamKirim}</b>
-        </div>
-        <div style="font-size:11px;color:#666">
-          BAGIAN: ${r.BAGIAN||'-'} | ${r.ID_KMS||r.ID_PACK||r.ID_BDL||r.ID_BALL||''} | Status: ${r.status}
-        </div>
-      </div>
-    `;
+    html += `<div style="background:${warna};margin:5px 0;padding:10px;border-radius:8px;border-left:4px solid ${r.status=='Terkirim'?'green':'orange'}"><div style="font-weight:bold">${icon} QR: ${r.QR_BAK}</div><div style="font-size:12px;color:#333">📅 ${r.TANGGAL} | 📷 SCAN: <b>${r.JAM_SCAN||'-'}</b> | 📤 KIRIM: <b>${jamKirim}</b></div><div style="font-size:11px;color:#666">BAGIAN: ${r.BAGIAN||'-'} | ${r.ID_KMS||r.ID_PACK||r.ID_BDL||r.ID_BALL||''} | Status: ${r.status}</div></div>`;
   });
   wadah.innerHTML = html;
 }
-// === 3. JAM LIVE + RENDER ===
 function updateJamLive(){const wib=getWIBDateTime();const el=document.getElementById('jamLive');if(el)el.innerText=wib.tgl_id+' '+wib.jam+' WIB'}
 setInterval(updateJamLive,1000);
-
 updateJamLive();
 renderSteps();startCam();
 </script>
 <script>
-// AUTO UPDATE V202 - PKJ AUTO UPDATE
-var VERSI_SERVER = "202";
+// AUTO UPDATE V203 - PKJ AUTO UPDATE - FIX: PENDING ORA ILANG
+var VERSI_SERVER = "203";
 var VERSI_HP = localStorage.getItem("VERSI_APP");
 if(VERSI_HP !== VERSI_SERVER){
+  var _pendingSave = localStorage.getItem("riwayat_scan");
+  var _riwayatSave = localStorage.getItem("riwayat");
+  var _bagianSave = localStorage.getItem("bagian");
+  var _typeSave = localStorage.getItem("scan_type");
   localStorage.clear();
+  if(_pendingSave) localStorage.setItem("riwayat_scan", _pendingSave);
+  if(_riwayatSave) localStorage.setItem("riwayat", _riwayatSave);
+  if(_bagianSave) localStorage.setItem("bagian", _bagianSave);
+  if(_typeSave) localStorage.setItem("scan_type", _typeSave);
   localStorage.setItem("VERSI_APP", VERSI_SERVER);
   window.location.href = window.location.href.split('?')[0] + "?v=" + Date.now();
 }
 </script>
-
 </body>
 </html>
