@@ -184,7 +184,7 @@ function updateAntreanBox(){
     all2.forEach(d=>{ if(d.BATCH_ID===batchId){ d.status='Terkirim'; d.JAM_KIRIM=wibKirim.jam; }});
     localStorage.setItem('riwayat_scan',JSON.stringify(all2));
     localStorage.setItem('riwayat',JSON.stringify(all2));
-    if(statusEl) statusEl.innerText="✅ 1 BATCH sukses! Lanjut scan...";
+    if(statusEl) statusEl.innerText="✅ selesai kirim ! Lanjut scan...";
     isMengirimAntrean=false;
     updateAntreanBox();
     setTimeout(processQueue,500);
@@ -218,7 +218,7 @@ function setZoom(z){try{const track=html5QrcodeScanner.getRunningTrack();const c
 function paksaFokus(){try{const track=html5QrcodeScanner.getRunningTrack();track.applyConstraints({advanced:[{focusMode:"continuous"}]})}catch{html5QrcodeScanner.stop().then(()=>startCam())}}
 function toggleTorch(){try{const track=html5QrcodeScanner.getRunningTrack();const cap=track.getCapabilities();if(cap.torch){torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]})}}catch(e){}}
 async function gantiKamera(){try{await html5QrcodeScanner.stop()}catch{}startCam()}
-// === AUTOSAVE BARU - BORONGAN: SIMPEN LANGSUNG LANJUT SCAN, ORA NGGENTENI KIRIM ===
+// === AUTOSAVE BARU: SIMPEN LANGSUNG LANJUT SCAN ===
 async function autoSave(){
   let bagian=localStorage.getItem('bagian')||TYPE;
   const wib=getWIBDateTime();
@@ -240,13 +240,13 @@ async function autoSave(){
     localStorage.setItem('riwayat',JSON.stringify(all));
   }catch(err){ alert("Gagal simpen riwayat: "+err); return; }
   // LANGSUNG RESET & LANJUT SCAN - ORA NGGENTENI KIRIM!
-  document.getElementById('status').innerText="✅ KE-SAVE! Lanjut scan maneh... (Ngirim neng mburi)";
+  document.getElementById('status').innerText="✅ KE-SAVE! Lanjut scan ... (lagi kirim,abaikan)";
   cur=0; res={}; listBak=[]; isPause=false; tempScan="";
   document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';
   renderSteps(); updateAntreanBox();
   try{ html5QrcodeScanner.resume(); }catch(e){}
   lastScanTime=Date.now();
-  // Kirim neng mburi, ora ngunci scan
+  // Kirim di belakang layar, ora ngunci scan
   processQueue();
 }
 function parseTanggalID(tglStr, jamStr){
