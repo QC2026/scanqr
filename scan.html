@@ -35,7 +35,7 @@ input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;
 <div id="steps" style="margin-top:8px"></div>
 <div id="step-info" style="text-align:center;margin-top:8px;font-weight:900;color:gold">Siap Scan</div>
 <div id="jamLive" style="text-align:center;margin-top:6px;font-weight:900;color:#0f0;background:#000;border:1px solid #333;padding:6px;border-radius:8px;font-size:13px">Loading jam...</div>
-<div id="antreanBox">📤 ANTREAN: 0 | ✅ TERKIRIM: 0</div>
+<div id="antreanBox" style="display:none">📤 ANTREAN: 0 | ✅ TERKIRIM: 0</div>
 <div id="reader"><div id="scan-guide"><span>ARAHKAN QR KESINI</span></div></div>
 <div id="list-preview"><div style="color:#888">Belum ada QR BAK - Scan 8x</div></div>
 <button onclick="paksaFokus()" class="btn" style="background:#2563eb;color:white">🔍 TAP JIKA BLUR</button>
@@ -191,6 +191,7 @@ function updateAntreanBox(){
     localStorage.setItem('antrean', JSON.stringify(ant));
     localStorage.setItem('antrean_scan', JSON.stringify(ant));
     if(statusEl) statusEl.innerText="✅ selesai kirim ! Lanjut scan...";
+    if(!silent){alert("Terkirim ke Sheet\n" + wibKirim.tgl +"" + wibKirim.jam);}
     isMengirimAntrean=false;
     updateAntreanBox();renderRiwayat();
     setTimeout(processQueue,500);
