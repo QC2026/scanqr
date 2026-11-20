@@ -48,16 +48,36 @@ body{margin:0;background:#080808;color:#ffd700;font-family:sans-serif;padding:12
 function go(t){localStorage.setItem('scan_type',t);location.href='scan.html';}
 function keluarApp(){ if(confirm('Yakin mau keluar?')){ try{webintoapp.closeApp();return;}catch(e){} try{Android.closeApp();return;}catch(e){} try{window.close();}catch(e){} } }
 const URL_GAS="https://script.google.com/macros/s/AKfycbxeV0P-hdypgH8tcphBo-Jb54uYFf5eNj-tVNAX2MXYmI-FXez-9KM2fppjuURkDCABUg/exec";
-async function autoSync(){
-  let all=JSON.parse(localStorage.getItem('riwayat')||localStorage.getItem('riwayat_scan')||'[]');
-  let gagal=all.filter(d=>d.status!='sukses');
+  async function autoSync(){
+  let all=JSON.parse(localStorage.getItem('riwayat_scan')||localStorage.getItem('riwayat')||'[]');
   let el=document.getElementById('syncStatus');
-  if(!navigator.onLine){ el.innerHTML='📴 OFFLINE - '+all.length+' data disimpan lokal'; el.style.color='yellow'; return; }
-  if(gagal.length==0){ el.innerHTML='✅ ONLINE - '+all.length+' data sudah terkirim'; el.style.color='#0f0'; return; }
-  el.innerHTML='📶 ONLINE - Auto kirim '+gagal.length+' data...'; el.style.color='gold';
-  for(let d of all){ if(d.status=='sukses') continue; try{ await fetch(URL_GAS,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d),mode:'no-cors'}); d.status='sukses'; }catch(e){} }
-  localStorage.setItem('riwayat',JSON.stringify(all)); localStorage.setItem('riwayat_scan',JSON.stringify(all));
-  el.innerHTML='✅ Selesai kirim '+gagal.length+' data - ONLINE';
+  // Samakan status: Terkirim / sukses 
+  let pending = all.filter(d=>d.status!=='Terkirim' && d.status!=='sukses');
+  if(!navigator.onLine){ el.innerHTML='📴 OFFLINE - '+pending.length+' antrean'; el.style.color='yellow'; return; }
+  if(pending.length==0){ el.innerHTML='✅ ONLINE - '+all.length+' data sudah terkirim'; el.style.color='#0f0'; return; }
+  el.innerHTML='📶 ONLINE - Auto kirim '+pending.length+' data...'; el.style.color='gold';
+
+  // Kirim per BATCH_ID, ora 1-1, ben cepet!
+  let batchIds = [...new Set(pending.map(d=>d.BATCH_ID))];
+  for(let batchId of batchIds){
+    let items = all.filter(d=>d.BATCH_ID===batchId);
+    let first = items[0];
+    if(!first || !first.QR_BAK) continue;
+    let kirim;
+    if(first.ID_BALL !== undefined || items.length>1){
+      kirim={ TYPE:'BALL_8', LIST_BAK: items.map(d=>d.QR_BAK), ID_BALL:first.ID_BALL||'', NO_BOX:first.NO_BOX||'', BAGIAN:first.BAGIAN||'', TGL_CLIENT:first.TGL_CLIENT||'', TGL_JAM_CLIENT:first.TGL_JAM_CLIENT||'', BATCH_ID:batchId };
+    } else {
+      kirim={ QR_BAK:first.QR_BAK, ID_PC:first.ID_PC||'', ID_GL:first.ID_GL||'', ID_GL2:first.ID_GL2||'', ID_KMS:first.ID_KMS||'', ID_PACK:first.ID_PACK||'', ID_BDL:first.ID_BDL||'', BAGIAN:first.BAGIAN||'', TGL_CLIENT:first.TGL_CLIENT||'', TGL_JAM_CLIENT:first.TGL_JAM_CLIENT||'', BATCH_ID:batchId, TYPE:first.BAGIAN||'' };
+    }
+    try{
+      await fetch(URL_GAS,{method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(kirim)});
+      // Tandai Terkirim, bIAR TDK DIKIRIM ULANG DI scan / index
+      all.forEach(d=>{ if(d.BATCH_ID===batchId) d.status='Terkirim'; });
+      localStorage.setItem('riwayat_scan', JSON.stringify(all));
+      localStorage.setItem('riwayat', JSON.stringify(all));
+    }catch(e){}
+  }
+  el.innerHTML='✅ Selesai kirim - ONLINE';
 }
 window.addEventListener('online', autoSync);
 window.addEventListener('load', autoSync);
