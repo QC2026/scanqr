@@ -187,7 +187,7 @@ function updateAntreanBox(){
     localStorage.setItem('riwayat',JSON.stringify(all2));
     if(statusEl) statusEl.innerText="✅ selesai kirim ! Lanjut scan...";
     isMengirimAntrean=false;
-    updateAntreanBox();
+    updateAntreanBox();renderRiwayat();
     setTimeout(processQueue,500);
   }catch(e){
     console.log("Antrean gagal, coba lagi 3 detik:",e);
