@@ -60,6 +60,7 @@ input{width:100%;padding:12px;background:#222;border:1px solid #444;color:white;
 </div>
 <div id="verify8Box"><div class="card" style="border-color:#0f0"><h2 style="color:#0f0">✅ 8 QR TERKUMPUL</h2><div id="list8Preview" style="background:#000;border:1px solid #444;border-radius:8px;padding:8px;max-height:260px;overflow:auto;text-align:left;font-size:13px;color:#0f0;margin-top:10px"></div><div style="display:flex;gap:10px;margin-top:16px"><button onclick="confirm8()" class="btn" style="background:#22c55e;color:white;flex:1">✅ SESUAI LANJUT</button><button onclick="ulang8()" class="btn" style="background:#ef4444;color:white;flex:1">🔄 ULANG 8 QR</button></div></div></div>
 <script>
+<script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
     reg.onupdatefound = () => {
@@ -282,20 +283,6 @@ renderSteps();startCam();
 updateAntreanBox();
 setTimeout(processQueue,1000);
 setInterval(()=>{if(navigator.online) processQueue(true);},5000);
-  //KIRIM TANPA DI HALAMAN SCAN 
-function kirimPasBali(){
-  let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
-  let pending = all.filter(d=>d.status!=='Terkirim');
-  if(pending.length===0) return;
-  // sendBeacon = ngirim tetep jalan walopun wes pindah halaman!
-  let data = pending.map(d=>({QR_BAK:d.QR_BAK, ID_BALL:d.ID_BALL, NO_BOX:d.NO_BOX, BAGIAN:d.BAGIAN, BATCH_ID:d.BATCH_ID, TGL_CLIENT:d.TGL_CLIENT, TGL_JAM_CLIENT:d.TGL_JAM_CLIENT}));
-  navigator.sendBeacon(GOOGLE_URL, JSON.stringify({TYPE:'BALL_8', LIST_BAK: data.map(x=>x.QR_BAK), ID_BALL: data[0].ID_BALL, NO_BOX: data[0].NO_BOX, BAGIAN: data[0].BAGIAN, BATCH_ID: data[0].BATCH_ID, TGL_CLIENT: data[0].TGL_CLIENT, TGL_JAM_CLIENT: data[0].TGL_JAM_CLIENT}));
-  // Tandai terkirim ben ora dobel
-  all.forEach(d=>d.status='Terkirim');
-  localStorage.setItem('riwayat_scan', JSON.stringify(all));
-}
-window.addEventListener("pagehide", kirimPasBali);
-document.addEventListener("visibilitychange", ()=>{ if(document.hidden) kirimPasBali(); });
 </script>
 <script>
 // AUTO UPDATE V204 - BORONGAN ANTREAN
