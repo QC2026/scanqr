@@ -179,7 +179,7 @@ function updateAntreanBox(){
     const txt=await r.text();
     let txtUp=(txt||"").toUpperCase();
     if(!r.ok || txtUp.includes("ERROR") || txtUp.includes("GAGAL") || txtUp.includes("FAILED")) throw new Error("Sheet nolak: "+txt);
-    try{ let j=JSON.parse(txt); if(j.status && j.status.toUpperCase()!=="OK" && j.status.toUpperCase()!=="SUCCESS") throw new Error("Sheet: "+txt); }catch(e){ if(e.message && e.message.startsWith("Sheet:")) throw e; }
+    try{
     let wibKirim=getWIBDateTime();
     let all2=JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
     all2.forEach(d=>{ if(d.BATCH_ID===batchId){ d.status='Terkirim'; d.JAM_KIRIM=wibKirim.jam; }});
