@@ -235,13 +235,13 @@ async function autoSave(){
       });
     } else {
       let qr=res['QR CODE BAK']||'';
-      // GL: simpen ID_GL2 juga ben ora ilang
+      // GL: simpen ID_GL2 juga 
       all.push({ BATCH_ID:currentBatchId, QR_BAK:qr,ID_PC:res['ID PC']||'',ID_GL:res['ID GL 1']||'',ID_GL2:res['ID GL 2']||'', ID_KMS:TYPE=='KMS'?res['ID KMS']||'':'',ID_PACK:TYPE=='PACK'?res['ID PACK']||'':'',ID_BDL:TYPE=='BDL'?res['ID BDL']||'':'', BAGIAN:bagian,TANGGAL:tgl_input,TGL_CLIENT:wib.tgl_id, JAM_SCAN:wib.jam,JAM_KIRIM:'-', waktu:wib.full_display,TGL_JAM_CLIENT:wib.full_display, status:'Lokal (Pending)' });
     }
     localStorage.setItem('riwayat_scan',JSON.stringify(all));
     localStorage.setItem('riwayat',JSON.stringify(all));
   }catch(err){ alert("Gagal simpen riwayat: "+err); return; }
-  // LANGSUNG RESET & LANJUT SCAN - ORA NGGENTENI KIRIM!
+  // LANGSUNG RESET & LANJUT SCAN 
   document.getElementById('status').innerText="✅ KE-SAVE! Lanjut scan ... (lagi kirim,abaikan)";
   cur=0; res={}; listBak=[]; isPause=false; tempScan="";
   document.getElementById('list-preview').innerHTML='<div style="color:#888">Belum ada QR BAK - Scan 8x ya</div>';
@@ -281,8 +281,8 @@ setInterval(updateJamLive,1000);
 updateJamLive();
 renderSteps();startCam();
 updateAntreanBox();
-//setTimeout(processQueue,1000);
-//setInterval(()=>{if(navigator.online) processQueue(true);},5000);
+setTimeout(processQueue,1000);
+setInterval(()=>{if(navigator.online) processQueue(true);},5000);
 </script>
 <script>
 // AUTO UPDATE V205 - BORONGAN ANTREAN
