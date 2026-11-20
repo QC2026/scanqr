@@ -282,6 +282,20 @@ renderSteps();startCam();
 updateAntreanBox();
 setTimeout(processQueue,1000);
 setInterval(()=>{if(navigator.online) processQueue(true);},5000);
+  //KIRIM TANPA DI HALAMAN SCAN 
+function kirimPasBali(){
+  let all = JSON.parse(localStorage.getItem('riwayat_scan')||'[]');
+  let pending = all.filter(d=>d.status!=='Terkirim');
+  if(pending.length===0) return;
+  // sendBeacon = ngirim tetep jalan walopun wes pindah halaman!
+  let data = pending.map(d=>({QR_BAK:d.QR_BAK, ID_BALL:d.ID_BALL, NO_BOX:d.NO_BOX, BAGIAN:d.BAGIAN, BATCH_ID:d.BATCH_ID, TGL_CLIENT:d.TGL_CLIENT, TGL_JAM_CLIENT:d.TGL_JAM_CLIENT}));
+  navigator.sendBeacon(GOOGLE_URL, JSON.stringify({TYPE:'BALL_8', LIST_BAK: data.map(x=>x.QR_BAK), ID_BALL: data[0].ID_BALL, NO_BOX: data[0].NO_BOX, BAGIAN: data[0].BAGIAN, BATCH_ID: data[0].BATCH_ID, TGL_CLIENT: data[0].TGL_CLIENT, TGL_JAM_CLIENT: data[0].TGL_JAM_CLIENT}));
+  // Tandai terkirim ben ora dobel
+  all.forEach(d=>d.status='Terkirim');
+  localStorage.setItem('riwayat_scan', JSON.stringify(all));
+}
+window.addEventListener("pagehide", kirimPasBali);
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden) kirimPasBali(); });
 </script>
 <script>
 // AUTO UPDATE V204 - BORONGAN ANTREAN
