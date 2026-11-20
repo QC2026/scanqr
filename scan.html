@@ -174,7 +174,6 @@ function updateAntreanBox(){
   }
   let statusEl=document.getElementById('status');
   if(statusEl) statusEl.innerText="⏳ lagi kirim... Antrean: "+batchId;
-  try{
     const r=await fetch(GOOGLE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(kirim)});
     const txt=await r.text();
     let txtUp=(txt||"").toUpperCase();
