@@ -1,4 +1,4 @@
-{
+ {
   "name": "SCAN US",
   "short_name": "SCAN US",
   "start_url": "./scan.html",
@@ -19,4 +19,4 @@
       "purpose": "any maskable"
     }
   ]
-}
+ }
