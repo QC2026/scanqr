@@ -134,10 +134,8 @@ function updateAntreanBox(){
     if(el) el.innerText=`📤 ANTREAN: ${pending} | ✅ TERKIRIM: ${terkirim}`;
   }catch(e){}
 }
-  async function processQueue(silent = false) {
-  // 1. Perbaikan: huruf 'L' kapital pada navigator.onLine
-  if (!navigator.onLine) return;
-  if (isMengirimAntrean) return;
+ async function processQueue(silent = false) {
+  if (!navigator.onLine || isMengirimAntrean) return;
 
   let all = JSON.parse(localStorage.getItem('riwayat_scan') || '[]');
   let bersih = all.filter(d => d.QR_BAK && d.QR_BAK.trim() !== "");
@@ -147,126 +145,135 @@ function updateAntreanBox(){
     all = bersih;
   }
 
-  let pendingBatch = all.find(d => d.status !== 'Terkirim');
-  if (!pendingBatch) {
+  // Ambil SEMUA item yang belum terkirim & sudah lengkap datanya
+  let pendingItems = all.filter(d => {
+    if (d.status === 'Terkirim') return false;
+    if (d.ID_BALL !== undefined && (!d.ID_BALL || !d.NO_BOX)) return false;
+    return true;
+  });
+
+  if (pendingItems.length === 0) {
     updateAntreanBox();
     return;
   }
 
-  let batchId = pendingBatch.BATCH_ID;
-  let items = all.filter(d => d.BATCH_ID === batchId);
-  let first = items[0];
-
-  if (!first || !first.QR_BAK) {
-    let sisa = all.filter(d => d.BATCH_ID !== batchId);
-    localStorage.setItem('riwayat_scan', JSON.stringify(sisa));
-    isMengirimAntrean = false;
-    setTimeout(processQueue, 500);
-    return;
-  }
-
-  if (first.ID_BALL !== undefined && (!first.ID_BALL || !first.NO_BOX)) {
-    console.log("Batch blm lengkap, skip:", batchId);
-    isMengirimAntrean = false;
-    return;
-  }
-
   isMengirimAntrean = true;
-  let wib2 = getWIBDateTime();
-  let kirim;
 
-  if (items.length > 1 || (first.ID_BALL)) {
-    let listBakKirim = items.map(d => d.QR_BAK);
-    kirim = {
-      TYPE: 'BALL_8',
-      LIST_BAK: listBakKirim,
-      ID_BALL: first.ID_BALL || '',
-      NO_BOX: first.NO_BOX || '',
-      BAGIAN: first.BAGIAN || TYPE,
-      TGL_CLIENT: first.TGL_CLIENT || wib2.tgl_id,
-      TGL_JAM_CLIENT: first.TGL_JAM_CLIENT || wib2.full_display,
-      JAM_HP: wib2.full_display,
-      TGL_ISO: wib2.iso,
-      JAM_MILIS: wib2.milis,
-      JAM_CLIENT: wib2.jam,
-      TARGET_SHEET: "",
-      BATCH_ID: batchId
-    };
-  } else {
-    kirim = {
-      QR_BAK: first.QR_BAK || '',
-      ID_PC: first.ID_PC || '',
-      ID_GL: first.ID_GL || '',
-      ID_GL2: first.ID_GL2 || '',
-      ID_KMS: first.ID_KMS || '',
-      ID_PACK: first.ID_PACK || '',
-      ID_BDL: first.ID_BDL || '',
-      BAGIAN: first.BAGIAN || TYPE,
-      TGL_CLIENT: first.TGL_CLIENT || wib2.tgl_id,
-      TGL_JAM_CLIENT: first.TGL_JAM_CLIENT || wib2.full_display,
-      JAM_HP: wib2.full_display,
-      TGL_ISO: wib2.iso,
-      JAM_MILIS: wib2.milis,
-      JAM_CLIENT: wib2.jam,
-      TYPE: (first.BAGIAN || TYPE),
-      TARGET_SHEET: "",
-      BATCH_ID: batchId
-    };
-    if (first.ID_GL2) kirim.ID_GL2 = first.ID_GL2;
-  }
+  // Kelompokkan berdasarkan BATCH_ID agar struktur payload tetap sama
+  let groupedBatches = {};
+  pendingItems.forEach(item => {
+    if (!groupedBatches[item.BATCH_ID]) {
+      groupedBatches[item.BATCH_ID] = [];
+    }
+    groupedBatches[item.BATCH_ID].push(item);
+  });
+
+  let wib2 = getWIBDateTime();
+  let batchIdsTerkirim = Object.keys(groupedBatches);
+  
+  // Siapkan array payload untuk dikirim sekaligus (Bulk)
+  let bulkPayload = batchIdsTerkirim.map(batchId => {
+    let items = groupedBatches[batchId];
+    let first = items[0];
+
+    if (items.length > 1 || first.ID_BALL) {
+      return {
+        TYPE: 'BALL_8',
+        LIST_BAK: items.map(d => d.QR_BAK),
+        ID_BALL: first.ID_BALL || '',
+        NO_BOX: first.NO_BOX || '',
+        BAGIAN: first.BAGIAN || TYPE,
+        TGL_CLIENT: first.TGL_CLIENT || wib2.tgl_id,
+        TGL_JAM_CLIENT: first.TGL_JAM_CLIENT || wib2.full_display,
+        JAM_HP: wib2.full_display,
+        TGL_ISO: wib2.iso,
+        JAM_MILIS: wib2.milis,
+        JAM_CLIENT: wib2.jam,
+        TARGET_SHEET: "",
+        BATCH_ID: batchId
+      };
+    } else {
+      let single = {
+        QR_BAK: first.QR_BAK || '',
+        ID_PC: first.ID_PC || '',
+        ID_GL: first.ID_GL || '',
+        ID_GL2: first.ID_GL2 || '',
+        ID_KMS: first.ID_KMS || '',
+        ID_PACK: first.ID_PACK || '',
+        ID_BDL: first.ID_BDL || '',
+        BAGIAN: first.BAGIAN || TYPE,
+        TGL_CLIENT: first.TGL_CLIENT || wib2.tgl_id,
+        TGL_JAM_CLIENT: first.TGL_JAM_CLIENT || wib2.full_display,
+        JAM_HP: wib2.full_display,
+        TGL_ISO: wib2.iso,
+        JAM_MILIS: wib2.milis,
+        JAM_CLIENT: wib2.jam,
+        TYPE: (first.BAGIAN || TYPE),
+        TARGET_SHEET: "",
+        BATCH_ID: batchId
+      };
+      if (first.ID_GL2) single.ID_GL2 = first.ID_GL2;
+      return single;
+    }
+  });
 
   let statusEl = document.getElementById('status');
-  if (statusEl) statusEl.innerText = "⏳ lagi kirim... Antrean: " + batchId;
+  if (statusEl) statusEl.innerText = `⏳ Mengirim ${bulkPayload.length} batch sekaligus...`;
 
-  // 2. Perbaikan: Blok 'try' membungkus proses fetch dari awal
   try {
     const r = await fetch(GOOGLE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(kirim)
+      body: JSON.stringify({ BULK_DATA: bulkPayload }), // Bungkus dalam array BULK_DATA
+      keepalive: true // Tetap kirim meski layar mati/pindah tab
     });
+
     const txt = await r.text();
     if (!r.ok) throw new Error("Sheet nolak: " + txt);
 
     let wibKirim = getWIBDateTime();
     let all2 = JSON.parse(localStorage.getItem('riwayat_scan') || '[]');
+    let sentQRs = new Set(pendingItems.map(d => d.QR_BAK));
+
     all2.forEach(d => {
-      if (d.BATCH_ID === batchId) {
+      if (batchIdsTerkirim.includes(d.BATCH_ID)) {
         d.status = 'Terkirim';
         d.JAM_KIRIM = wibKirim.jam;
       }
     });
+
     localStorage.setItem('riwayat_scan', JSON.stringify(all2));
     localStorage.setItem('riwayat', JSON.stringify(all2));
 
-    // 3. Perbaikan: Menghapus duplikasi 'd => d =>' pada filter
     let ant = JSON.parse(localStorage.getItem('antrean') || '[]');
-    let sentQR = items.map(d => d.QR_BAK);
-    ant = ant.filter(d => !sentQR.includes(d.QR_BAK));
+    ant = ant.filter(d => !sentQRs.has(d.QR_BAK));
     localStorage.setItem('antrean', JSON.stringify(ant));
     localStorage.setItem('antrean_scan', JSON.stringify(ant));
 
-    if (statusEl) statusEl.innerText = "✅ selesai kirim ! Lanjut scan...";
+    if (statusEl) statusEl.innerText = "✅ Selesai kirim! Lanjut scan...";
 
-    // 4. Perbaikan: Menggunakan wibKirim.tgl_id agar tidak 'undefined'
+    // Notifikasi popup singkat (1.2 detik saja agar tidak menghalangi pandangan)
     let pop = document.createElement('div');
-    pop.innerHTML = "✅ Terkirim ke Sheet<br>" + wibKirim.tgl_id + " " + wibKirim.jam;
-    pop.style.cssText = "position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px 25px;border-radius:15px;font-size:18px;text-align:center;z-index:99999;box-shadow:0 0 20px #000";
+    pop.innerHTML = `✅ ${bulkPayload.length} Batch Terkirim<br>${wibKirim.tgl_id} ${wibKirim.jam}`;
+    pop.style.cssText = "position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:15px 20px;border-radius:12px;font-size:16px;text-align:center;z-index:99999;pointer-events:none;";
     document.body.appendChild(pop);
-    if (navigator.vibrate) navigator.vibrate(200);
-    setTimeout(() => { pop.remove(); }, 3000);
+    if (navigator.vibrate) navigator.vibrate(150);
+    setTimeout(() => pop.remove(), 1200);
 
     isMengirimAntrean = false;
     updateAntreanBox();
     renderRiwayat();
-    setTimeout(processQueue, 500);
+
+    // Langsung cek tanpa jeda 500ms jika ada scan baru yang masuk saat proses fetch tadi berlangsung
+    let sisaBaru = JSON.parse(localStorage.getItem('riwayat_scan') || '[]').some(d => d.status !== 'Terkirim');
+    if (sisaBaru) processQueue(true);
 
   } catch (e) {
-    console.log("Antrean gagal, coba lagi 3 detik:", e);
-    if (statusEl) statusEl.innerText = `⚠️ Sinyal jelek, coba lagi 3 detik... Data aman di Antrean`;
+    console.log("Antrean gagal, coba lagi 2 detik:", e);
+    if (statusEl) statusEl.innerText = "⚠️ Sinyal jelek, coba lagi 2 detik... Data aman";
     isMengirimAntrean = false;
     updateAntreanBox();
-    setTimeout(processQueue, 3000);
+    setTimeout(() => processQueue(true), 2000);
   }
 }
 
