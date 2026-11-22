@@ -218,7 +218,7 @@ function updateAntreanBox(){
   });
 
   let statusEl = document.getElementById('status');
-  if (statusEl) statusEl.innerText = `⏳ Mengirim ${bulkPayload.length} batch sekaligus...`;
+  if (statusEl) statusEl.innerText = `⏳ Mengirim ${bulkPayload.length} semua...`;
 
   try {
     const r = await fetch(GOOGLE_URL, {
@@ -252,13 +252,13 @@ function updateAntreanBox(){
 
     if (statusEl) statusEl.innerText = "✅ Selesai kirim! Lanjut scan...";
 
-    // Notifikasi popup singkat (1.2 detik saja agar tidak menghalangi pandangan)
+    // Notifikasi popup singkat (2 detik saja agar tidak menghalangi pandangan)
     let pop = document.createElement('div');
     pop.innerHTML = `✅ ${bulkPayload.length} Batch Terkirim<br>${wibKirim.tgl_id} ${wibKirim.jam}`;
     pop.style.cssText = "position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:15px 20px;border-radius:12px;font-size:16px;text-align:center;z-index:99999;pointer-events:none;";
     document.body.appendChild(pop);
     if (navigator.vibrate) navigator.vibrate(150);
-    setTimeout(() => pop.remove(), 1200);
+    setTimeout(() => pop.remove(), 2000);
 
     isMengirimAntrean = false;
     updateAntreanBox();
@@ -364,8 +364,8 @@ setTimeout(processQueue,1000);
 setInterval(()=>{if(navigator.online) processQueue(true);},5000);
 </script>
 <script>
-// AUTO UPDATE JIKA SHEET DIUPDATE V208 - BORONGAN ANTREAN
-var VERSI_SERVER = "208";
+// AUTO UPDATE JIKA SHEET DIUPDATE V209 - BORONGAN ANTREAN
+var VERSI_SERVER = "209";
 var VERSI_HP = localStorage.getItem("VERSI_APP");
 if(VERSI_HP !== VERSI_SERVER){
   var _pendingSave = localStorage.getItem("riwayat_scan");
