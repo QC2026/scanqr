@@ -147,10 +147,13 @@ function updateAntreanBox(){
 
   // Ambil SEMUA item yang belum terkirim & sudah lengkap datanya
   let pendingItems = all.filter(d => {
-    if (d.status === 'Terkirim') return false;
-    if (d.ID_BALL !== undefined && (!d.ID_BALL || !d.NO_BOX)) return false;
-    return true;
-  });
+  let st = (d.status || "").toString().trim().toLowerCase();
+  if (st === 'terkirim' || st === 'sukses') return false;
+  if (d.JAM_KIRIM) return false;
+  if (d.ID_BALL && !d.NO_BOX) return false;
+  if ((d.TYPE === 'BALL_8' || d.BAGIAN === 'BALL') && !d.ID_BALL) return false;
+  return true;
+});
 
   if (pendingItems.length === 0) {
     updateAntreanBox();
@@ -236,11 +239,11 @@ function updateAntreanBox(){
     let sentQRs = new Set(pendingItems.map(d => d.QR_BAK));
 
     all2.forEach(d => {
-      if (batchIdsTerkirim.includes(d.BATCH_ID)) {
-        d.status = 'Terkirim';
-        d.JAM_KIRIM = wibKirim.jam;
-      }
-    });
+  if (sentQRs.has(d.QR_BAK)) {
+    d.status = 'sukses';
+    d.JAM_KIRIM = wibKirim.jam;
+    }
+  });
 
     localStorage.setItem('riwayat_scan', JSON.stringify(all2));
     localStorage.setItem('riwayat', JSON.stringify(all2));
@@ -265,9 +268,11 @@ function updateAntreanBox(){
     renderRiwayat();
 
     // Langsung cek tanpa jeda 500ms jika ada scan baru yang masuk saat proses fetch tadi berlangsung
-    let sisaBaru = JSON.parse(localStorage.getItem('riwayat_scan') || '[]').some(d => d.status !== 'Terkirim');
-    if (sisaBaru) processQueue(true);
-
+     let sisaBaru = JSON.parse(localStorage.getItem('riwayat_scan') || '[]').some(d => {
+  let st = (d.status || "").toString().trim().toLowerCase();
+  return st !== 'terkirim' && st !== 'sukses' && !d.JAM_KIRIM;
+});
+if (sisaBaru) processQueue(true);
   } catch (e) {
     console.log("Antrean gagal, coba lagi 2 detik:", e);
     if (statusEl) statusEl.innerText = "⚠️ Sinyal jelek, coba lagi 2 detik... Data aman";
@@ -364,8 +369,8 @@ setTimeout(processQueue,1000);
 setInterval(()=>{if(navigator.online) processQueue(true);},5000);
 </script>
 <script>
-// AUTO UPDATE JIKA SHEET DIUPDATE V215 - BORONGAN ANTREAN
-var VERSI_SERVER = "215";
+// AUTO UPDATE JIKA SHEET DIUPDATE V217 - BORONGAN ANTREAN
+var VERSI_SERVER = "217";
 var VERSI_HP = localStorage.getItem("VERSI_APP");
 if(VERSI_HP !== VERSI_SERVER){
   var _pendingSave = localStorage.getItem("riwayat_scan");
