@@ -8,6 +8,7 @@ const urlsToCache = [
   './logo.png',
   './html5-qrcode.min.js',
 ];
+}}} pasangan saja kalau mau di gunakan hapus baris ini
 
 self.addEventListener('install', event => {
   self.skipWaiting();
